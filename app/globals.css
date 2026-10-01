@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+/* ─── Tailwind v4 Theme (CSS-first config) ───────────────────────── */
+@theme {
+  /* Fonts */
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), Menlo, monospace;
+
+  /* Colors — mapped from CSS custom properties */
+  --color-ivory: #F7F3EA;
+  --color-paper: #FBF8F1;
+  --color-ink: #10201B;
+  --color-emerald: #0F4C3A;
+  --color-emerald-deep: #0A3327;
+  --color-emerald-surface: #1a5c47;
+  --color-brass: #B08D57;
+  --color-brass-soft: #D9C7A3;
+
+  /* Border radius */
+  --radius-card: 10px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 24px 0 rgba(10, 51, 39, 0.08);
+  --shadow-card-hover: 0 8px 40px 0 rgba(10, 51, 39, 0.14);
+  --shadow-emerald-sm: 0 2px 12px 0 rgba(15, 76, 58, 0.12);
+
+  /* Easing */
+  --ease-arch: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Durations */
+  --duration-250: 250ms;
+  --duration-400: 400ms;
+  --duration-600: 600ms;
+}
+
+/* ─── Design Tokens (runtime CSS variables) ─────────────────────── */
+:root {
+  /* Light mode palette */
+  --ivory: #F7F3EA;
+  --paper: #FBF8F1;
+  --ink: #10201B;
+  --emerald: #0F4C3A;
+  --emerald-deep: #0A3327;
+  --emerald-surface: #1a5c47;
+  --brass: #B08D57;
+  --brass-soft: #D9C7A3;
+
+  /* Semantic aliases */
+  --bg: var(--ivory);
+  --surface: var(--paper);
+  --text-primary: var(--ink);
+  --text-muted: #4a6559;
+  --border: var(--brass-soft);
+  --accent: var(--emerald);
+  --accent-glow: rgba(15, 76, 58, 0.15);
+
+  /* Typography scale */
+  --step--1: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --step-0: clamp(1rem, 0.925rem + 0.375vw, 1.125rem);
+  --step-1: clamp(1.125rem, 1rem + 0.625vw, 1.375rem);
+  --step-2: clamp(1.375rem, 1.2rem + 0.875vw, 1.875rem);
+  --step-3: clamp(1.875rem, 1.5rem + 1.875vw, 2.875rem);
+  --step-4: clamp(2.5rem, 1.875rem + 3.125vw, 4.25rem);
+  --step-5: clamp(3.25rem, 2.25rem + 5vw, 6.25rem);
+
+  /* Spacing */
+  --space-section: clamp(4rem, 8vw, 8rem);
+}
+
+/* ─── Base Styles ───────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* Paper grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ─── Typography ────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.mono-label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: var(--step--1);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass);
+  display: block;
+}
+
+/* ─── Layout utilities ──────────────────────────────────────────── */
+.container-main {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 4rem);
+}
+
+.section-padding {
+  padding-top: var(--space-section);
+  padding-bottom: var(--space-section);
+}
+
+/* ─── Brass hairline divider ─────────────────────────────────────── */
+.hairline {
+  border: none;
+  border-top: 1px solid var(--brass-soft);
+  opacity: 0.5;
+}
+
+/* ─── Scroll margin for anchor nav ─────────────────────────────── */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
+/* ─── Focus ring ────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Selection ─────────────────────────────────────────────────── */
+::selection {
+  background-color: var(--brass-soft);
+  color: var(--ink);
+}
+
+/* ─── Transitions ───────────────────────────────────────────────── */
+.ease-arch {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.duration-250 {
+  transition-duration: 250ms;
+}
+
+.duration-400 {
+  transition-duration: 400ms;
+}
+
+.duration-600 {
+  transition-duration: 600ms;
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
