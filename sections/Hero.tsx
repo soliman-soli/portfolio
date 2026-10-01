@@ -33,7 +33,7 @@ export default function Hero() {
       {/* Background Framing Islands */}
       {/* Top right island (desktop) */}
       <div
-        className="absolute top-[8%] right-[3%] hidden lg:block z-0 pointer-events-none opacity-75"
+        className="absolute top-[8%] right-[3%] hidden lg:block z-0 pointer-events-none"
         aria-hidden="true"
       >
         <FloatingIsland variant="server" size="md" />
@@ -41,7 +41,7 @@ export default function Hero() {
 
       {/* Bottom left island (desktop) */}
       <div
-        className="absolute bottom-[10%] left-[3%] hidden lg:block z-0 pointer-events-none opacity-75"
+        className="absolute bottom-[10%] left-[3%] hidden lg:block z-0 pointer-events-none"
         aria-hidden="true"
       >
         <FloatingIsland variant="automation" size="md" alt />
@@ -49,15 +49,15 @@ export default function Hero() {
 
       {/* Top left subtle island for symmetrical desktop framing */}
       <div
-        className="absolute top-[12%] left-[4%] hidden xl:block z-0 pointer-events-none opacity-60"
+        className="absolute top-[12%] left-[4%] hidden xl:block z-0 pointer-events-none"
         aria-hidden="true"
       >
         <FloatingIsland variant="blueprint" size="sm" />
       </div>
 
-      {/* Mobile: subtle background island */}
+      {/* Mobile: background island */}
       <div
-        className="absolute top-[6%] right-[2%] lg:hidden z-0 pointer-events-none opacity-50"
+        className="absolute top-[6%] right-[2%] lg:hidden z-0 pointer-events-none"
         aria-hidden="true"
       >
         <FloatingIsland variant="desktop" size="sm" />
