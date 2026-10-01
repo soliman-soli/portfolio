@@ -17,10 +17,6 @@ export const stack: StackGroup[] = [
     items: ['React', 'Next.js', 'Tailwind CSS', 'Framer Motion'],
   },
   {
-    label: 'Desktop',
-    items: ['Qt 6', 'QML', 'CMake'],
-  },
-  {
     label: 'Tools & AI',
     items: ['Git', 'Docker', 'AI agents', 'OpenAI APIs', 'FFmpeg', 'n8n'],
   },
