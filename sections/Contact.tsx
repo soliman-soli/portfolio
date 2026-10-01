@@ -157,21 +157,63 @@ export default function Contact() {
           borderTop: '1px solid rgba(176, 141, 87, 0.2)',
         }}
       >
-        <div className="container-main py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-xs text-[var(--brass-soft)] opacity-60">
-            © {new Date().getFullYear()} Soliman. All rights reserved.
-          </p>
-          <a
-            href="#top"
-            className="
-              font-mono text-xs text-[var(--brass-soft)] opacity-60
-              hover:opacity-100 hover:text-[var(--brass)]
-              transition-all duration-250 ease-arch
-              focus-visible:ring-2 focus-visible:ring-[var(--brass)]
-            "
-          >
-            ↑ Back to top
-          </a>
+        <div className="container-main py-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs font-mono text-[var(--brass-soft)]">
+            <span className="opacity-60">© {new Date().getFullYear()} Soliman. All rights reserved.</span>
+            <a
+              href={`mailto:${profile.email}`}
+              className="opacity-80 hover:opacity-100 hover:text-[var(--brass)] transition-colors underline-offset-4 hover:underline"
+            >
+              {profile.email}
+            </a>
+          </div>
+
+          <div className="flex items-center gap-4 sm:gap-6">
+            <a
+              href={profile.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub profile"
+              className="
+                flex items-center gap-2 text-xs font-mono
+                text-[var(--brass-soft)] opacity-80
+                hover:opacity-100 hover:text-[var(--brass)]
+                transition-all duration-200
+                focus-visible:ring-2 focus-visible:ring-[var(--brass)]
+              "
+            >
+              <GithubIcon />
+              <span>GitHub</span>
+            </a>
+            <a
+              href={profile.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn profile"
+              className="
+                flex items-center gap-2 text-xs font-mono
+                text-[var(--brass-soft)] opacity-80
+                hover:opacity-100 hover:text-[var(--brass)]
+                transition-all duration-200
+                focus-visible:ring-2 focus-visible:ring-[var(--brass)]
+              "
+            >
+              <LinkedInIcon />
+              <span>LinkedIn</span>
+            </a>
+            <a
+              href="#top"
+              className="
+                font-mono text-xs text-[var(--brass-soft)] opacity-60
+                hover:opacity-100 hover:text-[var(--brass)]
+                transition-all duration-250 ease-arch
+                focus-visible:ring-2 focus-visible:ring-[var(--brass)]
+                ml-2
+              "
+            >
+              ↑ Back to top
+            </a>
+          </div>
         </div>
       </footer>
     </>

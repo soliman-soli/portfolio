@@ -9,8 +9,7 @@ that eliminate repetitive work. If a task runs more than twice, I automate it.`,
   basedIn: 'Egypt',
   focus: 'Backend & Automation',
   currently: 'Deepening Next.js & distributed system design',
-  // ← Replace with your real email, GitHub, and LinkedIn
-  email: 'hello@soliman.dev',
-  github: 'https://github.com/soliman',
-  linkedin: 'https://linkedin.com/in/soliman',
+  email: 'soliman.solim22@gmail.com',
+  github: 'https://github.com/soliman-soli',
+  linkedin: 'https://www.linkedin.com/in/soliman-ahmed-software',
 }
