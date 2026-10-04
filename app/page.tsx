@@ -1,21 +1,27 @@
-import Hero from '@/sections/Hero'
-import About from '@/sections/About'
-import Work from '@/sections/Work'
-import Approach from '@/sections/Approach'
-import Stack from '@/sections/Stack'
-import Contact from '@/sections/Contact'
+'use client'
+
+import { useRef } from 'react'
+import { Backdrop } from '@/components/intro/Backdrop'
+import { CornerBrackets } from '@/components/intro/CornerBrackets'
+import { Crosshair } from '@/components/intro/Crosshair'
+import { Loader } from '@/components/intro/Loader'
+import { Hero } from '@/components/hero/Hero'
+import { WorkSection } from '@/components/work/WorkSection'
 
 export default function Home() {
+  const replayRef = useRef<(() => void) | null>(null)
+
   return (
     <>
-      <main id="main" tabIndex={-1}>
-        <Hero />
-        <About />
-        <Work />
-        <Approach />
-        <Stack />
+      <Loader onReplayRegister={(fn) => { replayRef.current = fn }} />
+      <Backdrop />
+      <CornerBrackets />
+      <Crosshair />
+
+      <main>
+        <Hero onReplay={() => replayRef.current?.()} />
+        <WorkSection />
       </main>
-      <Contact />
     </>
   )
 }

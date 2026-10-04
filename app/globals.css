@@ -1,187 +1,729 @@
-@import "tailwindcss";
+/*
+ * Global styles for the neon portfolio.
+ *
+ * Structure:
+ *   1. Tailwind layers (theme + utilities only; no preflight, see DECISIONS.md #4)
+ *   2. Design tokens (@theme = generates utilities, :root = motion/layout values)
+ *   3. Base element styles (ported from the prototype's reset)
+ *   4. Feature styles for anything state-driven (intro, crosshair, work rows,
+ *      preview, art panels). Static layout lives in JSX as utilities.
+ *
+ * Page state is exposed as attributes on <html>, set by client components:
+ *   data-intro="ready"  hero reveal has started (was body.ready)
+ *   data-mouse          a mouse pointer is present (was body.hasmouse)
+ *
+ * "Hidden before reveal" rules only apply when JS can actually reveal things
+ * (`scripting: enabled`), so the page is fully readable without JavaScript.
+ */
 
-/* ─── Tailwind v4 Theme (CSS-first config) ───────────────────────── */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* The prototype's single breakpoint, max-width based. Use as `narrow:...`. */
+@custom-variant narrow (@media (max-width: 760px));
+
+/* ======================================================================
+   2. Tokens
+   ====================================================================== */
+
+/* `static` = always emitted as CSS variables, so feature CSS can use them. */
+@theme static {
+  --color-*: initial;
+  --color-night: #070708; /* page background */
+  --color-ink: #EDEDE8; /* primary text */
+  --color-mut: #8b8b86; /* secondary text */
+  --color-line: rgba(237, 237, 232, 0.12); /* hairlines, grid, inactive bars */
+  --color-neon: #CCFF2E; /* the one accent, use sparingly */
+  --color-on-neon: #000; /* text on neon fills */
+  --color-card: #0d0d0f; /* preview card body */
+  --color-art: #0a0a0b; /* preview art panel */
+
+  --font-*: initial;
+  --font-disp: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, Menlo, Consolas, monospace;
+}
+
 @theme {
-  /* Fonts */
-  --font-serif: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), Menlo, monospace;
+  /* 1 spacing unit = 1px, so `pt-44` means 44px exactly like the prototype. */
+  --spacing: 1px;
 
-  /* Colors — mapped from CSS custom properties */
-  --color-ivory: #F7F3EA;
-  --color-paper: #FBF8F1;
-  --color-ink: #10201B;
-  --color-emerald: #0F4C3A;
-  --color-emerald-deep: #0A3327;
-  --color-emerald-surface: #1a5c47;
-  --color-brass: #B08D57;
-  --color-brass-soft: #D9C7A3;
+  --radius-*: initial;
+  --radius-pill: 99px;
+  --radius-card: 14px;
+  --radius-screen: 10px;
+  --radius-track: 5px;
+  --radius-block: 3px;
+  --radius-seg: 2px;
 
-  /* Border radius */
-  --radius-card: 10px;
+  /* Display type. Line-heights of `normal` mirror the prototype's `font:` shorthands. */
+  --text-count: clamp(90px, 22vw, 300px);
+  --text-count--line-height: 0.8;
+  --text-count--letter-spacing: -0.05em;
 
-  /* Shadows */
-  --shadow-card: 0 2px 24px 0 rgba(10, 51, 39, 0.08);
-  --shadow-card-hover: 0 8px 40px 0 rgba(10, 51, 39, 0.14);
-  --shadow-emerald-sm: 0 2px 12px 0 rgba(15, 76, 58, 0.12);
+  --text-hero: clamp(56px, 14.6vw, 230px);
+  --text-hero--line-height: 0.82;
+  --text-hero--letter-spacing: -0.045em;
 
-  /* Easing */
-  --ease-arch: cubic-bezier(0.22, 1, 0.36, 1);
+  --text-section: clamp(40px, 7.4vw, 112px);
+  --text-section--line-height: 0.9;
+  --text-section--letter-spacing: -0.04em;
 
-  /* Durations */
-  --duration-250: 250ms;
-  --duration-400: 400ms;
-  --duration-600: 600ms;
+  --text-row: clamp(26px, 4.6vw, 64px);
+  --text-row--line-height: 1;
+  --text-row--letter-spacing: -0.035em;
+
+  --text-logo: 20px;
+  --text-logo--line-height: normal;
+  --text-logo--letter-spacing: -0.03em;
+
+  --text-card: 17px;
+  --text-card--line-height: normal;
+  --text-card--letter-spacing: -0.02em;
+
+  /* Matches CSS `ease` so utility transitions behave like the prototype's. */
+  --default-transition-timing-function: ease;
 }
 
-/* ─── Design Tokens (runtime CSS variables) ─────────────────────── */
-:root {
-  /* Light mode palette */
-  --ivory: #F7F3EA;
-  --paper: #FBF8F1;
-  --ink: #10201B;
-  --emerald: #0F4C3A;
-  --emerald-deep: #0A3327;
-  --emerald-surface: #1a5c47;
-  --brass: #B08D57;
-  --brass-soft: #D9C7A3;
+@layer base {
+  :root {
+    /* motion: easings */
+    --ease-reveal: cubic-bezier(0.2, 0.8, 0.1, 1);
+    --ease-loader: cubic-bezier(0.76, 0, 0.24, 1);
 
-  /* Semantic aliases */
-  --bg: var(--ivory);
-  --surface: var(--paper);
-  --text-primary: var(--ink);
-  --text-muted: #4a6559;
-  --border: var(--brass-soft);
-  --accent: var(--emerald);
-  --accent-glow: rgba(15, 76, 58, 0.15);
+    /* motion: durations and delays (JS-side timings live in lib/motion.ts) */
+    --dur-loader-slide: 0.9s;
+    --dur-letter: 1.1s;
+    --stagger-letter: 70ms;
+    --delay-letter: 0.25s;
+    --dur-fade: 0.9s;
+    --delay-fade: 0.9s;
+    --dur-corner: 0.8s;
+    --delay-corner: 1s;
+    --dur-crosshair: 0.4s;
+    --dur-link: 0.2s;
+    --dur-cta-gap: 0.25s;
+    --dur-ping: 2s;
+    --dur-row-dim: 0.35s;
+    --dur-row-rise: 0.9s;
+    --stagger-row: 90ms;
+    --dur-row-underline: 0.6s;
+    --dur-row-title: 0.5s;
+    --dur-row-idx: 0.25s;
+    --dur-preview-fade: 0.25s;
+    --dur-preview-pop: 0.45s;
 
-  /* Typography scale */
-  --step--1: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-  --step-0: clamp(1rem, 0.925rem + 0.375vw, 1.125rem);
-  --step-1: clamp(1.125rem, 1rem + 0.625vw, 1.375rem);
-  --step-2: clamp(1.375rem, 1.2rem + 0.875vw, 1.875rem);
-  --step-3: clamp(1.875rem, 1.5rem + 1.875vw, 2.875rem);
-  --step-4: clamp(2.5rem, 1.875rem + 3.125vw, 4.25rem);
-  --step-5: clamp(3.25rem, 2.25rem + 5vw, 6.25rem);
+    /* motion: distances */
+    --rise-letter: 112%;
+    --rise-fade: 14px;
+    --rise-row: 24px;
+    --slide-row-title: 18px;
+    --dim-row: 0.3;
+    --ping-radius: 9px;
+    --color-neon-ping: rgba(204, 255, 46, 0.6);
+    --color-neon-ping-end: rgba(204, 255, 46, 0);
 
-  /* Spacing */
-  --space-section: clamp(4rem, 8vw, 8rem);
-}
-
-/* ─── Base Styles ───────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-  font-size: 100%;
-}
-
-body {
-  background-color: var(--bg);
-  color: var(--text-primary);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  line-height: 1.7;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  overflow-x: hidden;
-}
-
-/* Paper grain overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.4;
-}
-
-/* ─── Typography ────────────────────────────────────────────────── */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-
-.mono-label {
-  font-family: var(--font-jetbrains), monospace;
-  font-size: var(--step--1);
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--brass);
-  display: block;
-}
-
-/* ─── Layout utilities ──────────────────────────────────────────── */
-.container-main {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 clamp(1.25rem, 5vw, 4rem);
-}
-
-.section-padding {
-  padding-top: var(--space-section);
-  padding-bottom: var(--space-section);
-}
-
-/* ─── Brass hairline divider ─────────────────────────────────────── */
-.hairline {
-  border: none;
-  border-top: 1px solid var(--brass-soft);
-  opacity: 0.5;
-}
-
-/* ─── Scroll margin for anchor nav ─────────────────────────────── */
-section[id] {
-  scroll-margin-top: 80px;
-}
-
-/* ─── Focus ring ────────────────────────────────────────────────── */
-:focus-visible {
-  outline: 2px solid var(--brass);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ─── Selection ─────────────────────────────────────────────────── */
-::selection {
-  background-color: var(--brass-soft);
-  color: var(--ink);
-}
-
-/* ─── Transitions ───────────────────────────────────────────────── */
-.ease-arch {
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.duration-250 {
-  transition-duration: 250ms;
-}
-
-.duration-400 {
-  transition-duration: 400ms;
-}
-
-.duration-600 {
-  transition-duration: 600ms;
-}
-
-/* ─── Reduced motion ─────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    /* layout */
+    --grid-cell: 88px;
+    --corner-inset: 14px;
+    --corner-size: 18px;
+    --corner-stroke: 1.5px;
+    --row-cols: 56px 1fr 230px 70px 130px;
+    --row-cols-narrow: 34px 1fr auto;
+    --preview-width: 300px;
+    --art-height: 150px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
-  html {
-    scroll-behavior: auto;
+}
+
+/* Mono label style used all over the page (was `.mono`). */
+@utility mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+
+/* ======================================================================
+   3. Base
+   ====================================================================== */
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    box-sizing: border-box;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    scroll-padding-top: var(--safe-top);
+    scroll-behavior: smooth;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-night);
+    color: var(--color-ink);
+    font: 400 16px/1.55 var(--font-disp);
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-neon);
+    color: var(--color-on-neon);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-neon);
+    outline-offset: 4px;
+  }
+}
+
+/* ======================================================================
+   4. Features
+   ====================================================================== */
+
+@layer components {
+  /* ---------- skip link (a11y addition, invisible until focused) ---------- */
+  .skip-link {
+    position: fixed;
+    top: calc(var(--safe-top) + 12px);
+    left: 12px;
+    z-index: 60;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-neon);
+    color: var(--color-on-neon);
+    transform: translateY(-200%);
+  }
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  /* ---------- loader ---------- */
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--color-night);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28px;
+    transition: transform var(--dur-loader-slide) var(--ease-loader);
+  }
+  .loader[data-state="done"] {
+    transform: translateY(-100%);
+  }
+  /* Progressive enhancement: no JS, no overlay. */
+  @media (scripting: none) {
+    .loader {
+      display: none;
+    }
+  }
+
+  /* ---------- backdrop: grid ---------- */
+  .backdrop-grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--color-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+    background-size: var(--grid-cell) var(--grid-cell);
+    opacity: 0.5;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 60%, #000 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse at 50% 60%, #000 20%, transparent 75%);
+  }
+
+  /* ---------- backdrop: HUD corner brackets ---------- */
+  .corner {
+    position: fixed;
+    width: var(--corner-size);
+    height: var(--corner-size);
+    border: 0 solid var(--color-ink);
+    opacity: 0.7;
+    transition:
+      width var(--dur-corner) var(--ease-reveal) var(--delay-corner),
+      height var(--dur-corner) var(--ease-reveal) var(--delay-corner);
+    pointer-events: none;
+    z-index: 5;
+  }
+  .corner--tl {
+    top: calc(var(--corner-inset) + var(--safe-top));
+    left: var(--corner-inset);
+    border-width: var(--corner-stroke) 0 0 var(--corner-stroke);
+  }
+  .corner--tr {
+    top: calc(var(--corner-inset) + var(--safe-top));
+    right: var(--corner-inset);
+    border-width: var(--corner-stroke) var(--corner-stroke) 0 0;
+  }
+  .corner--bl {
+    bottom: calc(var(--corner-inset) + var(--safe-bottom));
+    left: var(--corner-inset);
+    border-width: 0 0 var(--corner-stroke) var(--corner-stroke);
+  }
+  .corner--br {
+    bottom: calc(var(--corner-inset) + var(--safe-bottom));
+    right: var(--corner-inset);
+    border-width: 0 var(--corner-stroke) var(--corner-stroke) 0;
+  }
+
+  /* ---------- crosshair (mouse only) ---------- */
+  .crosshair-h,
+  .crosshair-v {
+    position: fixed;
+    background: var(--color-line);
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity var(--dur-crosshair);
+  }
+  .crosshair-h {
+    left: 0;
+    right: 0;
+    height: 1px;
+    top: 0;
+  }
+  .crosshair-v {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    left: 0;
+  }
+  .crosshair-readout {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 6;
+    color: var(--color-neon);
+    opacity: 0;
+    transition: opacity var(--dur-crosshair);
+    white-space: nowrap;
+  }
+  :root[data-intro="ready"][data-mouse] :is(.crosshair-h, .crosshair-v, .crosshair-readout) {
+    opacity: 1;
+  }
+
+  /* ---------- hero: nav links, availability pill, CTA, replay ---------- */
+  .nav-link {
+    color: var(--color-mut);
+    transition: color var(--dur-link);
+  }
+  .nav-link:hover {
+    color: var(--color-ink);
+  }
+
+  .pulse-dot::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-neon);
+    box-shadow: 0 0 0 0 var(--color-neon-ping);
+    animation: ping var(--dur-ping) infinite;
+  }
+  @keyframes ping {
+    to {
+      box-shadow: 0 0 0 var(--ping-radius) var(--color-neon-ping-end);
+    }
+  }
+
+  .cta {
+    color: var(--color-ink);
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    border-bottom: 1px solid var(--color-neon);
+    padding-bottom: 2px;
+    transition:
+      gap var(--dur-cta-gap),
+      color var(--dur-link);
+  }
+  .cta:hover {
+    gap: 16px;
+    color: var(--color-neon);
+  }
+
+  .replay {
+    all: unset;
+    cursor: pointer;
+    color: var(--color-mut);
+    transition: color var(--dur-link);
+  }
+  .replay:hover {
+    color: var(--color-neon);
+  }
+  /* `all: unset` wiped the focus ring in the prototype; restore it. */
+  .replay:focus-visible {
+    outline: 2px solid var(--color-neon);
+    outline-offset: 4px;
+  }
+
+  /* ---------- hero: staggered fade-ins ---------- */
+  /* Set --d (seconds) inline to stagger. */
+  .reveal-fade {
+    transition:
+      opacity var(--dur-fade) ease,
+      transform var(--dur-fade) var(--ease-reveal);
+    transition-delay: calc(var(--d, 0) * 1s + var(--delay-fade));
+  }
+
+  /* ---------- hero: masked letter rise ---------- */
+  .mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    padding-bottom: 0.06em;
+  }
+  /* Set --i (letter index) inline to stagger. */
+  .mask > span {
+    display: inline-block;
+    transition: transform var(--dur-letter) var(--ease-reveal);
+    transition-delay: calc(var(--i) * var(--stagger-letter) + var(--delay-letter));
+  }
+
+  /* Hidden-until-ready states: only when JS will reveal them, and only when
+     motion is allowed (with reduced motion the prototype revealed instantly). */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    :root:not([data-intro="ready"]) .corner {
+      width: 0;
+      height: 0;
+    }
+    :root:not([data-intro="ready"]) .reveal-fade {
+      opacity: 0;
+      transform: translateY(var(--rise-fade));
+    }
+    :root:not([data-intro="ready"]) .mask > span {
+      transform: translateY(var(--rise-letter));
+    }
+  }
+
+  /* ---------- work list ---------- */
+  .work-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--row-cols);
+    align-items: center;
+    gap: 16px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--color-line);
+    transition: opacity var(--dur-row-dim);
+  }
+  @media (scripting: enabled) {
+    .work-row:not(.is-in) {
+      opacity: 0;
+    }
+  }
+  .work-row.is-in {
+    animation: rise var(--dur-row-rise) var(--ease-reveal) calc(var(--i) * var(--stagger-row)) backwards;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(var(--rise-row));
+    }
+  }
+
+  /* neon underline sweep */
+  .work-row::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--color-neon);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-row-underline) var(--ease-reveal);
+  }
+  .work-row:hover::after,
+  .work-row:focus-visible::after {
+    transform: none;
+  }
+
+  /* dim the others (keyboard focus gets the same treatment) */
+  .work-list:hover .work-row:not(:hover),
+  .work-list:has(.work-row:focus-visible) .work-row:not(:focus-visible) {
+    opacity: var(--dim-row);
+  }
+
+  .row-idx {
+    color: var(--color-mut);
+    transition: color var(--dur-row-idx);
+  }
+  .work-row:hover .row-idx,
+  .work-row:focus-visible .row-idx {
+    color: var(--color-neon);
+  }
+
+  .row-title {
+    transition: transform var(--dur-row-title) var(--ease-reveal);
+  }
+  .work-row:hover .row-title,
+  .work-row:focus-visible .row-title {
+    transform: translateX(var(--slide-row-title));
+  }
+
+  /* status pill */
+  .st {
+    justify-self: end;
+    border: 1px solid var(--color-line);
+    border-radius: 99px;
+    padding: 4px 12px;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  .st.live {
+    background: var(--color-neon);
+    border-color: var(--color-neon);
+    color: #000;
+  }
+  .st.wip {
+    border-color: var(--color-neon);
+    color: var(--color-neon);
+  }
+  .st.done,
+  .st.plan {
+    color: var(--color-mut);
+  }
+
+  /* inline details, only ever shown on touch devices */
+  .row-more {
+    display: none;
+    grid-column: 1 / -1;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--color-mut);
+  }
+
+  @media (max-width: 760px) {
+    .work-row {
+      grid-template-columns: var(--row-cols-narrow);
+    }
+  }
+
+  /* ---------- floating preview ---------- */
+  .preview {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: var(--preview-width);
+    pointer-events: none;
+    z-index: 7;
+    opacity: 0;
+    transition: opacity var(--dur-preview-fade);
+  }
+  .preview.is-on {
+    opacity: 1;
+  }
+  .preview-inner {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    transform: scale(0.92) rotate(-1.5deg);
+    transition: transform var(--dur-preview-pop) var(--ease-reveal);
+  }
+  .preview.is-on .preview-inner {
+    transform: none;
+  }
+
+  /* ---------- preview art panels (pure CSS shapes) ---------- */
+  .art {
+    position: relative;
+    height: var(--art-height);
+    background: var(--color-art);
+    border-bottom: 1px solid var(--color-line);
+    overflow: hidden;
+  }
+  .art i {
+    position: absolute;
+    display: block;
+  }
+
+  /* island: three stacked isometric tiles */
+  .art--island i {
+    left: 115px;
+    width: 70px;
+    height: 70px;
+    border: 1.5px solid var(--color-ink);
+    transform: rotateX(58deg) rotateZ(45deg);
+  }
+  .art--island i:nth-child(1) {
+    top: 84px;
+    border-color: var(--color-mut);
+  }
+  .art--island i:nth-child(2) {
+    top: 62px;
+  }
+  .art--island i:nth-child(3) {
+    top: 40px;
+    background: var(--color-neon);
+    border-color: var(--color-neon);
+  }
+
+  /* video: screen, play triangle, progress bar */
+  .art--video i:nth-child(1) {
+    inset: 22px 36px 46px;
+    border: 1.5px solid var(--color-ink);
+    border-radius: var(--radius-screen);
+  }
+  .art--video i:nth-child(2) {
+    left: calc(50% - 12px);
+    top: 48px;
+    width: 26px;
+    height: 30px;
+    background: var(--color-neon);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  .art--video i:nth-child(3) {
+    left: 36px;
+    right: 36px;
+    bottom: 20px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-neon) 55%, var(--color-line) 55%);
+  }
+
+  /* api: three response bars */
+  .art--api i {
+    left: 34px;
+    height: 9px;
+    border-radius: var(--radius-track);
+    background: var(--color-line);
+  }
+  .art--api i:nth-child(1) {
+    top: 42px;
+    width: 62%;
+  }
+  .art--api i:nth-child(2) {
+    top: 70px;
+    width: 32%;
+    background: var(--color-neon);
+  }
+  .art--api i:nth-child(3) {
+    top: 98px;
+    width: 50%;
+  }
+
+  /* gantt: three scheduled blocks */
+  .art--gantt i {
+    height: 14px;
+    border-radius: var(--radius-block);
+    background: var(--color-mut);
+  }
+  .art--gantt i:nth-child(1) {
+    left: 34px;
+    top: 38px;
+    width: 90px;
+  }
+  .art--gantt i:nth-child(2) {
+    left: 124px;
+    top: 68px;
+    width: 120px;
+    background: var(--color-neon);
+  }
+  .art--gantt i:nth-child(3) {
+    left: 80px;
+    top: 98px;
+    width: 70px;
+  }
+
+  /* card info container matching original .pi, .ph, .kv, .xp */
+  .pi {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ph {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    color: var(--color-ink);
+  }
+  .ph strong {
+    font: 800 17px var(--font-disp);
+    font-stretch: 112%;
+    letter-spacing: -0.02em;
+  }
+  .ph .mono {
+    color: var(--color-neon);
+  }
+  .kv {
+    display: flex;
+    justify-content: space-between;
+    color: var(--color-mut);
+  }
+  .kv b {
+    font-weight: 400;
+    color: var(--color-ink);
+  }
+  .xp {
+    display: flex;
+    gap: 3px;
+    margin-top: 6px;
+  }
+  .xp b {
+    flex: 1;
+    height: 5px;
+    border-radius: 2px;
+    background: var(--color-line);
+  }
+  .xp b.f {
+    background: var(--color-neon);
+  }
+
+  /* ---------- touch devices ---------- */
+  @media (hover: none) {
+    .preview {
+      display: none;
+    }
+    .work-row.is-open .row-more {
+      display: flex;
+    }
+    .work-row:hover .row-title {
+      transform: none;
+    }
+    .work-list:hover .work-row:not(:hover) {
+      opacity: 1;
+    }
+  }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      scroll-behavior: auto;
+    }
+    .work-row.is-in {
+      animation: none;
+    }
+    .work-row::after,
+    .row-title,
+    .preview-inner {
+      transition: none;
+    }
+    .loader {
+      display: none;
+    }
+    .mask > span,
+    .reveal-fade,
+    .corner {
+      transition: none;
+    }
+    .pulse-dot::before {
+      animation: none;
+    }
   }
 }

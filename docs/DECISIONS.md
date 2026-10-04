@@ -1,0 +1,57 @@
+# Architecture & Decisions
+
+Plain-language rationale for every major choice made while rebuilding Soliman's Hero + Selected Work page from the single-file prototype into a clean Next.js + TypeScript codebase.
+
+---
+
+## 1. Ground Truth First
+
+- **Choice:** Saved the original prototype untouched to `reference/original.html` and captured automated baseline screenshots via Playwright before making any architectural decisions.
+- **Why:** The goal is identical recreation, not redesign. Having baseline screenshots at desktop (1440x900) and mobile (390x844) prevents subjective drift and ensures exact pixel fidelity for fonts, spacings, and animations.
+
+## 2. Framework & Tooling
+
+- **Choice:** Next.js (App Router, static prerendering), React 19, TypeScript 5.9, Tailwind CSS v4, and pnpm.
+- **Why:** 
+  - Standard, modern React stack with high performance and zero unnecessary runtime dependencies.
+  - No external animation libraries (like Framer Motion or GSAP) were used; native CSS keyframes/transitions combined with `requestAnimationFrame` reproduce the prototype's feel with zero bundle overhead.
+
+## 3. Font Loading Strategy
+
+- **Choice:** `next/font/google` for Archivo and JetBrains Mono with CSS variable injection (`--font-archivo`, `--font-jetbrains`).
+- **Why:** 
+  - Archivo is configured with `axes: ['wdth']` to enable `font-stretch: 125%` exactly as specified in the original typography.
+  - Self-hosted by Next.js automatically at build time, eliminating layout shift (CLS) and external Google Fonts network calls.
+
+## 4. CSS Architecture & Tailwind v4 `@theme`
+
+- **Choice:** Custom tokens declared in `@theme` inside `app/globals.css`, with a 1px spacing unit (`--spacing: 1px`) and custom variants (`@custom-variant narrow (@media (max-width: 760px))`).
+- **Why:**
+  - Allows utility classes to match the prototype's exact pixel values (e.g. `p-[44px_40px_40px]`, `text-hero`, `text-count`).
+  - Preserves exact selectors and class names from the prototype (`.pi`, `.ph`, `.kv`, `.xp`, `.st`, `.art--*`) for 100% visual parity.
+  - Avoided Tailwind's default preflight margins/paddings from altering delicate display typography alignments.
+
+## 5. Performance & DOM Updates
+
+- **Choice:** Direct ref mutations via `requestAnimationFrame` for cursor crosshair coordinates and floating preview lerp.
+- **Why:**
+  - Prevents triggering 60–120Hz React state re-renders on mouse movement.
+  - Keeps React's virtual DOM reconciliation completely out of high-frequency render loops.
+
+## 6. Accessibility & Progressive Enhancement
+
+- **Choice:** 
+  - Added an off-screen skip link (`skip to work &rarr;`) that becomes visible on keyboard focus.
+  - Marked rows with semantic `<a>` tags pointing to real `/work/[slug]` routes.
+  - Bound `aria-expanded` dynamically on touch devices (`hover: none`) when rows are tapped.
+  - Fallbacks for `prefers-reduced-motion` and `scripting: none` ensuring content is instantly visible and navigable.
+
+---
+
+## Proposed Changes (Not Applied)
+
+Per instructions, any potential improvements outside the allowed list are recorded here without being applied:
+
+1. **Canvas/WebGL Grid:** A GPU-rendered grid shader instead of CSS radial-masked gradients could allow interactive light ripples on mouse movement.
+2. **Dynamic Work Slugs & Markdown Content:** Integrating MDX files for full project case studies in `/work/[slug]`.
+3. **Sound FX on Boot:** Optional subtle synthesized 8-bit audio clicks for the 0-100% counter tick.
