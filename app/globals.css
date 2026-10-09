@@ -140,6 +140,8 @@
     --arcade-boot-total: 450ms;
     --color-scanline: rgba(0, 0, 0, 0.35);
     --color-neon-dim: rgba(204, 255, 46, 0.25);
+    --dur-console-flash: 200ms;
+    --dur-console-line: 25ms;
   }
 }
 
@@ -1102,10 +1104,90 @@
     animation: blink-press 0.8s steps(1) infinite;
   }
 
+  /* ---------- arcade console ---------- */
+  .console-screen {
+    position: relative;
+    border: 2px solid var(--color-neon);
+    border-radius: var(--radius-screen);
+    background: var(--color-card);
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  }
+
+  .console-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.2) 0px,
+      rgba(0, 0, 0, 0.2) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.6;
+  }
+
+  .console-screen.is-flashing {
+    filter: brightness(2) drop-shadow(0 0 24px var(--color-neon));
+    transition: filter var(--dur-console-flash) ease;
+  }
+
+  .console-screen .glow-neon {
+    text-shadow: 0 0 8px rgba(204, 255, 46, 0.45);
+  }
+
+  .console-output {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+
+  .console-output::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .console-output::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .console-output::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 2px;
+  }
+
+  .console-output::-webkit-scrollbar-thumb:hover {
+    background: var(--color-neon);
+  }
+
+  .console-chips {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .console-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Blinking cursor for the retro terminal prompt */
+  .console-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-ink);
+    caret-color: var(--color-neon);
+    font-family: var(--font-mono);
+  }
+
   /* ---------- reduced motion ---------- */
   @media (prefers-reduced-motion: reduce) {
     :root {
       scroll-behavior: auto;
+    }
+    .console-screen.is-flashing {
+      filter: none !important;
+      transition: none !important;
     }
     .work-row.is-in {
       animation: none;

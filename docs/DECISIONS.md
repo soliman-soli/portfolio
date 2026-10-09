@@ -101,6 +101,16 @@ Plain-language rationale for every major choice made while rebuilding Soliman's 
 - **Choice:** Section order is hero, about, work, contact.
 - **Why:** Introduces Soliman's profile, qualifications, and core technical skills immediately following the hero introduction before diving into specific project case studies and the arcade contact terminal.
 
+## 18. Arcade Console Architecture
+
+- **Choice:** Console is a pure command function (lib/console/commands.ts) rendered by one small client component; output is typed React nodes, never HTML strings.
+- **Why:** Keeps terminal command evaluation deterministic, side-effect free, and completely decoupled from React DOM rendering or danger of XSS vulnerabilities, while allowing complex structured rich UI elements (runnable command triggers, Next.js internal Link navigation, download links, and responsive key-value lines).
+
+## 19. Console Section Placement
+
+- **Choice:** Console is not in the nav; it sits between About and Work.
+- **Why:** Serves as an interactive exploratory playground directly connecting Soliman's background overview with the deep case study project list, without cluttering the primary header navigation.
+
 ---
 
 ## Proposed Changes (Not Applied)

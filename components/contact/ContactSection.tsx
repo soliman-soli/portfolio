@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useInView } from '@/lib/hooks/useInView'
 import { useMediaQuery, REDUCED_MOTION } from '@/lib/hooks/useMediaQuery'
+import { links } from '@/content/links'
 
 export function ContactSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -113,7 +114,7 @@ export function ContactSection() {
               <div className="contact-menu w-full flex flex-col gap-14 text-left">
                 {/* Email */}
                 <a
-                  href="mailto:soliman.solim22@gmail.com?subject=Hello%20from%20your%20portfolio"
+                  href={links.mailto}
                   className="contact-line group"
                 >
                   <span className="contact-cursor mono text-[var(--color-neon)]" aria-hidden="true">
@@ -121,13 +122,13 @@ export function ContactSection() {
                   </span>
                   <span className="contact-key mono text-mut w-[88px]">email</span>
                   <span className="contact-val mono text-ink group-hover:text-[var(--color-neon)] transition-colors">
-                    soliman.solim22@gmail.com
+                    {links.email}
                   </span>
                 </a>
 
                 {/* LinkedIn */}
                 <a
-                  href="https://www.linkedin.com/in/soliman-ahmed"
+                  href={links.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="contact-line group"
@@ -137,13 +138,13 @@ export function ContactSection() {
                   </span>
                   <span className="contact-key mono text-mut w-[88px]">linkedin</span>
                   <span className="contact-val mono text-ink group-hover:text-[var(--color-neon)] transition-colors">
-                    /in/soliman-ahmed
+                    {links.linkedinDisplay}
                   </span>
                 </a>
 
                 {/* GitHub */}
                 <a
-                  href="https://github.com/soliman-ahmed"
+                  href={links.github}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="contact-line group"
@@ -153,13 +154,13 @@ export function ContactSection() {
                   </span>
                   <span className="contact-key mono text-mut w-[88px]">github</span>
                   <span className="contact-val mono text-ink group-hover:text-[var(--color-neon)] transition-colors">
-                    /soliman-ahmed
+                    {links.githubDisplay}
                   </span>
                 </a>
 
                 {/* CV PDF */}
                 <a
-                  href="/Soliman_Ahmed_CV.pdf"
+                  href={links.cv}
                   download
                   className="contact-line group"
                 >

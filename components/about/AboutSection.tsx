@@ -1,4 +1,4 @@
-import { skillGroups, perks } from '@/content/skills'
+import { skillGroups, perks, playerCard } from '@/content/skills'
 import { XpBar } from '@/components/ui/XpBar'
 
 export function AboutSection() {
@@ -34,20 +34,20 @@ export function AboutSection() {
           <div className="flex flex-col gap-10 mono text-[13px]">
             <div className="flex justify-between items-baseline gap-12">
               <span className="text-mut">class</span>
-              <b className="font-normal text-ink text-right">Backend Engineer</b>
+              <b className="font-normal text-ink text-right">{playerCard.class}</b>
             </div>
             <div className="flex justify-between items-baseline gap-12">
               <span className="text-mut">subclass</span>
-              <b className="font-normal text-ink text-right">AI Systems &amp; RAG</b>
+              <b className="font-normal text-ink text-right">{playerCard.subclass}</b>
             </div>
             <div className="flex justify-between items-baseline gap-12">
               <span className="text-mut">base</span>
-              <b className="font-normal text-ink text-right">Cairo, Egypt</b>
+              <b className="font-normal text-ink text-right">{playerCard.base}</b>
             </div>
             <div className="flex justify-between items-start gap-12 border-t border-[var(--color-line)] pt-10">
               <span className="text-mut shrink-0">education</span>
               <b className="font-normal text-ink text-right leading-snug">
-                B.Sc. Computer Engineering, Misr University for Science and Technology (MUST), expected July 2028, GPA 3.1
+                {playerCard.education}
               </b>
             </div>
           </div>

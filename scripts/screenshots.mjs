@@ -135,6 +135,102 @@ async function run() {
       await sleep(800)
       await shot(page, vp, 'f-about')
 
+      // k) Console section tests & captures
+      await scrollToSection(page, 'console')
+      await sleep(600)
+      await shot(page, vp, 'k0-console-onload')
+
+      const consoleInput = page.locator('#console input.console-input')
+      const screenPanel = page.locator('#console .console-screen')
+
+      // Verify clicking screen does not scroll page
+      const scrollBeforeClick = await page.evaluate(() => window.scrollY)
+      await screenPanel.click({ position: { x: 50, y: 50 } })
+      const scrollAfterClick = await page.evaluate(() => window.scrollY)
+      if (Math.abs(scrollBeforeClick - scrollAfterClick) > 5) {
+        throw new Error('Clicking console screen unexpectedly scrolled the page!')
+      }
+
+      // 1. run 'help'
+      await consoleInput.fill('help')
+      await consoleInput.press('Enter')
+      await sleep(700)
+      await shot(page, vp, 'k1-console-help')
+
+      // 2. run 'cat 01'
+      await consoleInput.fill('cat 01')
+      await consoleInput.press('Enter')
+      await sleep(700)
+      await shot(page, vp, 'k2-console-cat')
+
+      // 3. run unknown command with typo distance <= 2
+      await consoleInput.fill('helpp')
+      await consoleInput.press('Enter')
+      await sleep(400)
+      await shot(page, vp, 'k3-console-unknown')
+
+      // 4. Verify Tab autocomplete & history with ArrowUp/Down
+      await consoleInput.fill('cat ra')
+      await consoleInput.press('Tab')
+      const completedVal = await consoleInput.inputValue()
+      if (!completedVal.includes('rag-document-qa-api')) {
+        console.warn('Tab autocomplete for cat rag expected rag-document-qa-api, got:', completedVal)
+      }
+      await consoleInput.fill('')
+      await consoleInput.press('ArrowUp')
+      const histVal = await consoleInput.inputValue()
+      if (!histVal) {
+        console.warn('History navigation with ArrowUp expected a value!')
+      }
+
+      // 5. Test 'hiscores' before unlock (should be unknown)
+      await consoleInput.fill('hiscores')
+      await consoleInput.press('Enter')
+      await sleep(300)
+
+      // 6. Test 'sudo hire soliman'
+      await consoleInput.fill('sudo hire soliman')
+      await consoleInput.press('Enter')
+      await sleep(700)
+
+      // 7. Test 'cat 9'
+      await consoleInput.fill('cat 9')
+      await consoleInput.press('Enter')
+      await sleep(300)
+
+      // 8. Test 'clear'
+      await consoleInput.fill('clear')
+      await consoleInput.press('Enter')
+      await sleep(200)
+
+      // 9. Test Esc blur
+      await consoleInput.fill('some text')
+      await consoleInput.press('Escape')
+      const isFocused = await page.evaluate(() => document.activeElement === document.querySelector('#console input.console-input'))
+      if (isFocused) {
+        console.warn('Expected input to be blurred after Escape!')
+      }
+
+      // 10. Konami code sequence
+      await page.keyboard.press('ArrowUp')
+      await page.keyboard.press('ArrowUp')
+      await page.keyboard.press('ArrowDown')
+      await page.keyboard.press('ArrowDown')
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('b')
+      await page.keyboard.press('a')
+      await sleep(400)
+      await shot(page, vp, 'k4-console-konami')
+
+      // 11. Run unlocked 'hiscores'
+      await consoleInput.fill('hiscores')
+      await consoleInput.press('Enter')
+      await sleep(700)
+      await shot(page, vp, 'k5-console-hiscores')
+
       // g1) Contact screen before inserting coin
       await scrollToSection(page, 'contact')
       await sleep(1200)
@@ -171,7 +267,7 @@ async function run() {
         await projContext.close()
       }
 
-      // e) Reduced motion captures: cabinet + contact section + project page
+      // e) Reduced motion captures: cabinet + contact section + project page + console
       {
         const { context: rmContext, page: rmPage } = await newPage(browser, vp, {
           reducedMotion: 'reduce',
@@ -179,6 +275,10 @@ async function run() {
         await rmPage.goto(cfg.url, { waitUntil: 'load' })
         await rmPage.evaluate(() => document.fonts.ready)
         await sleep(400)
+        await scrollToSection(rmPage, 'console')
+        await sleep(400)
+        await shot(rmPage, vp, 'k-console-reduced')
+
         await scrollToSection(rmPage, 'work')
         const rmRow1 = await rmPage.locator(`${cfg.row}:nth-child(1)`).boundingBox()
         if (rmRow1) {
@@ -206,6 +306,16 @@ async function run() {
       await page.evaluate(() => document.fonts.ready)
       await sleep(SETTLE_MS)
 
+      // f) Mobile About section
+      await scrollToSection(page, 'about')
+      await sleep(800)
+      await shot(page, vp, 'f-about')
+
+      // k) Mobile Console section with chips
+      await scrollToSection(page, 'console')
+      await sleep(800)
+      await shot(page, vp, 'k-console-mobile')
+
       // d0) Mobile work list before tap
       await scrollToSection(page, 'work')
       await page.waitForSelector(`${cfg.row}:nth-child(4)`)
@@ -217,11 +327,6 @@ async function run() {
       // Let mobile stage screen boot animation complete
       await sleep(1000)
       await shot(page, vp, 'd-expanded')
-
-      // f) Mobile About section
-      await scrollToSection(page, 'about')
-      await sleep(800)
-      await shot(page, vp, 'f-about')
 
       // g) Mobile Contact screen
       await scrollToSection(page, 'contact')

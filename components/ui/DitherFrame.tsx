@@ -157,7 +157,9 @@ export function DitherFrame({
 
     const updateSize = () => {
       const isNarrow = window.matchMedia('(max-width: 760px)').matches
-      const effectiveBand = bandProp ?? (isNarrow ? 14 : 32)
+      const effectiveBand = bandProp
+        ? (isNarrow ? Math.round(bandProp * 0.5) : bandProp)
+        : (isNarrow ? 14 : 32)
       state.band = effectiveBand
 
       const rect = wrapper.getBoundingClientRect()

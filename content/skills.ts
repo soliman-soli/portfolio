@@ -9,3 +9,14 @@ export const skillGroups = [
 ] as const
 
 export const perks = ['Cross-functional Collaboration','Technical Documentation','Agile Teamwork','Problem Solving','Mentorship'] as const
+
+export const playerCard = {
+  name: 'Soliman Ahmed',
+  class: 'Backend Engineer',
+  subclass: 'AI Systems & RAG',
+  base: 'Cairo, Egypt',
+  education:
+    'B.Sc. Computer Engineering, Misr University for Science and Technology (MUST), expected July 2028, GPA 3.1',
+  educationShort:
+    'B.Sc. Computer Engineering, MUST (expected July 2028), GPA 3.1',
+} as const

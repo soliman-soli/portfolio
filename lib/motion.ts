@@ -104,3 +104,14 @@ export const ARCADE_GLITCH_MS = 200
 
 /** IntersectionObserver threshold for the row rise-in. */
 export const ROW_REVEAL_THRESHOLD = 0.2
+
+/* ---------- arcade console ---------- */
+
+/** Stepped stagger delay between reveal lines (~25ms). */
+export const CONSOLE_REVEAL_STAGGER_MS = 25
+/** Maximum total duration for revealing a block of lines (~600ms). */
+export const CONSOLE_REVEAL_MAX_MS = 600
+/** Brightness flash duration on Konami code unlock (200ms). */
+export const CONSOLE_FLASH_MS = 200
+/** Maximum command history items stored in memory. */
+export const CONSOLE_HISTORY_MAX = 50
