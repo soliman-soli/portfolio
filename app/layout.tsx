@@ -28,6 +28,13 @@ export const metadata: Metadata = {
   title: 'Soliman Ahmed - Backend Engineer | AI Systems & RAG',
   description:
     'Backend-focused computer engineering student building production-grade RAG pipelines, AI evaluation systems and scalable REST APIs.',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
