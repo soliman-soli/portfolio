@@ -101,10 +101,9 @@
     --delay-fade: 0.9s;
     --dur-corner: 0.8s;
     --delay-corner: 1s;
-    --dur-crosshair: 0.4s;
+    --dur-crosshair: 150ms;
     --dur-link: 0.2s;
     --dur-cta-gap: 0.25s;
-    --dur-ping: 2s;
     --dur-row-dim: 0.35s;
     --dur-row-rise: 0.9s;
     --stagger-row: 90ms;
@@ -120,9 +119,6 @@
     --rise-row: 24px;
     --slide-row-title: 18px;
     --dim-row: 0.3;
-    --ping-radius: 9px;
-    --color-neon-ping: rgba(204, 255, 46, 0.6);
-    --color-neon-ping-end: rgba(204, 255, 46, 0);
 
     /* layout */
     --grid-cell: 88px;
@@ -288,15 +284,24 @@
     border-width: 0 var(--corner-stroke) var(--corner-stroke) 0;
   }
 
-  /* ---------- crosshair (mouse only) ---------- */
-  .crosshair-h,
-  .crosshair-v {
-    position: fixed;
-    background: var(--color-line);
+  /* ---------- crosshair (hero only, mouse only) ---------- */
+  .crosshair-wrap {
+    position: absolute;
+    inset: 0;
     pointer-events: none;
+    overflow: hidden;
     z-index: 4;
     opacity: 0;
-    transition: opacity var(--dur-crosshair);
+    transition: opacity var(--dur-crosshair) ease;
+  }
+  :root[data-intro="ready"][data-mouse] .crosshair-wrap.is-active {
+    opacity: 1;
+  }
+  .crosshair-h,
+  .crosshair-v {
+    position: absolute;
+    background: var(--color-line);
+    pointer-events: none;
   }
   .crosshair-h {
     left: 0;
@@ -311,43 +316,15 @@
     left: 0;
   }
   .crosshair-readout {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     pointer-events: none;
-    z-index: 6;
     color: var(--color-neon);
-    opacity: 0;
-    transition: opacity var(--dur-crosshair);
     white-space: nowrap;
   }
-  :root[data-intro="ready"][data-mouse] :is(.crosshair-h, .crosshair-v, .crosshair-readout) {
-    opacity: 1;
-  }
 
-  /* ---------- hero: nav links, availability pill, CTA, replay ---------- */
-  .nav-link {
-    color: var(--color-mut);
-    transition: color var(--dur-link);
-  }
-  .nav-link:hover {
-    color: var(--color-ink);
-  }
-
-  .pulse-dot::before {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--color-neon);
-    box-shadow: 0 0 0 0 var(--color-neon-ping);
-    animation: ping var(--dur-ping) infinite;
-  }
-  @keyframes ping {
-    to {
-      box-shadow: 0 0 0 var(--ping-radius) var(--color-neon-ping-end);
-    }
-  }
+  /* ---------- hero: nav links, CTA, replay ---------- */
 
   .cta {
     color: var(--color-ink);
@@ -990,6 +967,9 @@
 
   /* ---------- touch devices ---------- */
   @media (hover: none) {
+    .crosshair-wrap {
+      display: none;
+    }
     .preview {
       display: none;
     }
@@ -1138,8 +1118,8 @@
     .corner {
       transition: none;
     }
-    .pulse-dot::before {
-      animation: none;
+    .crosshair-wrap {
+      display: none;
     }
     .crt-power-on,
     .arcade-boot-msg {

@@ -52,10 +52,10 @@ components/
   intro/
     Loader.tsx           # 000% to 100% boot sequence counter overlay
     CornerBrackets.tsx   # HUD corner brackets
-    Crosshair.tsx        # Mouse coordinate tracker with live readout
+    Crosshair.tsx        # Hero-scoped mouse coordinate tracker with live readout
     Backdrop.tsx         # Subtle radial-masked grid
   hero/
-    Hero.tsx             # Header nav, role statement, stack, CTA, replay button
+    Hero.tsx             # Header nav, role statement, CTA, replay button
     HeroName.tsx         # SOLIMAN. masked letter rise
   work/
     WorkSection.tsx      # Section header, project list, hover coordinator

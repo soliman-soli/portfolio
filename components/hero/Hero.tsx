@@ -1,7 +1,9 @@
 'use client'
 
+import { useRef } from 'react'
 import Link from 'next/link'
 import { HeroName } from './HeroName'
+import { Crosshair } from '@/components/intro/Crosshair'
 import { cssVars } from '@/lib/css'
 
 interface HeroProps {
@@ -9,22 +11,30 @@ interface HeroProps {
 }
 
 export function Hero({ onReplay }: HeroProps) {
+  const heroRef = useRef<HTMLElement>(null)
+
   return (
-    <header className="relative min-h-[100svh] flex flex-col justify-between p-[44px_40px_40px] narrow:p-[36px_20px_28px] z-[2]">
+    <header
+      ref={heroRef}
+      id="hero"
+      className="relative min-h-[100svh] flex flex-col justify-between p-[44px_40px_40px] narrow:p-[36px_20px_28px] z-[2] overflow-hidden"
+    >
+      <Crosshair heroRef={heroRef} />
+
       {/* Nav */}
       <nav
-        className="reveal-fade flex justify-between items-center gap-16"
+        className="reveal-fade grid grid-cols-[1fr_auto_1fr] items-center gap-16 narrow:flex narrow:justify-between"
         style={cssVars({ '--d': 0.1 })}
         aria-label="Main"
       >
         <Link
           href="/"
-          className="font-[800] text-logo font-disp font-stretch-125"
+          className="font-[800] text-logo font-disp font-stretch-125 justify-self-start"
           aria-label="Soliman home"
         >
           S<i className="text-[var(--color-neon)] not-italic">/</i>
         </Link>
-        <div className="links mono flex gap-28 narrow:hidden">
+        <div className="links mono flex gap-28 narrow:hidden justify-center">
           <a href="#work" className="nav-link">
             work
           </a>
@@ -35,38 +45,22 @@ export function Hero({ onReplay }: HeroProps) {
             contact
           </a>
         </div>
-        <span className="mono status inline-flex items-center gap-9 border border-[var(--color-line)] rounded-pill px-14 py-6 text-ink pulse-dot">
-          open to backend &amp; AI roles
-        </span>
+        <div className="narrow:hidden" aria-hidden="true" />
       </nav>
 
       {/* Hero Body */}
       <div>
-        <div className="mid grid grid-cols-[1fr_auto] narrow:grid-cols-1 gap-32 items-end mb-18">
+        <div className="mid mb-18">
           <p
             className="reveal-fade role text-mut max-w-[34ch] m-0"
             style={cssVars({ '--d': 0.25 })}
           >
-            Computer engineering student building{' '}
+            Software engineer building{' '}
             <em className="text-ink not-italic">
               backends and AI systems
             </em>
             : RAG pipelines, fast APIs, and tools that feel like finished products.
           </p>
-          <div
-            className="reveal-fade stack mono flex flex-col gap-4 text-mut text-right narrow:text-left"
-            style={cssVars({ '--d': 0.35 })}
-          >
-            <span>
-              <b className="text-ink font-normal">Python</b> / FastAPI
-            </span>
-            <span>
-              <b className="text-ink font-normal">LangChain</b> / Qdrant
-            </span>
-            <span>
-              <b className="text-ink font-normal">React</b> / Docker
-            </span>
-          </div>
         </div>
 
         <HeroName />
@@ -78,7 +72,6 @@ export function Hero({ onReplay }: HeroProps) {
           <a className="cta" href="#work">
             view selected work <span aria-hidden="true">&rarr;</span>
           </a>
-          <span>lv.03 &middot; portfolio 2026</span>
           <button
             className="replay"
             type="button"

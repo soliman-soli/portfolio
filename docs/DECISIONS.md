@@ -66,6 +66,11 @@ Plain-language rationale for every major choice made while rebuilding Soliman's 
 - **Choice:** Made the arcade coin-drop interaction completely optional: provided an immediate "skip ▸ show contacts" fallback, bypassed all gating in `prefers-reduced-motion` mode or with JavaScript disabled (`<noscript>`), and ensured contact links are standard, accessible semantic anchors.
 - **Why:** While the retro `CONTINUE?` countdown and coin mechanism provide immersive arcade flavoring, recruiters on tight deadlines must never be blocked or frustrated when looking for an email or CV download.
 
+## 11. Coordinate Marker Scoped to Hero
+
+- **Choice:** Coordinate marker is scoped to the hero.
+- **Why:** Keeps cursor crosshair feedback and real-time HUD waypoint coordinates focused on the opening hero introduction without distracting from project examination in the work section or reading in about/contact sections. The marker transitions off in 150ms upon leaving the hero or scrolling past it.
+
 ---
 
 ## Proposed Changes (Not Applied)

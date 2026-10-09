@@ -39,6 +39,8 @@ export function easeInOutCubic(t: number): number {
 export const CROSSHAIR_READOUT_OFFSET = 14
 /** Coordinates are zero-padded to this many digits ("x 0042"). */
 export const CROSSHAIR_DIGITS = 4
+/** Fade duration for the crosshair marker entering/exiting hero (~150ms). */
+export const CROSSHAIR_FADE_MS = 150
 
 /* ---------- floating preview ---------- */
 

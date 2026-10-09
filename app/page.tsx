@@ -3,7 +3,6 @@
 import { useRef } from 'react'
 import { Backdrop } from '@/components/intro/Backdrop'
 import { CornerBrackets } from '@/components/intro/CornerBrackets'
-import { Crosshair } from '@/components/intro/Crosshair'
 import { Loader } from '@/components/intro/Loader'
 import { Hero } from '@/components/hero/Hero'
 import { WorkSection } from '@/components/work/WorkSection'
@@ -18,7 +17,6 @@ export default function Home() {
       <Loader onReplayRegister={(fn) => { replayRef.current = fn }} />
       <Backdrop />
       <CornerBrackets />
-      <Crosshair />
 
       <main>
         <Hero onReplay={() => replayRef.current?.()} />
