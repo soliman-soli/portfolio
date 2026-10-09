@@ -45,9 +45,9 @@ Outputs are saved in `reference/current/` and compared against `reference/baseli
 ```
 app/
   layout.tsx             # Root layout with font configuration and skip link
-  page.tsx               # Main hero + selected work page
-  globals.css            # Tokens, reset, keyframes, feature styles
-  work/[slug]/page.tsx   # Static destination route for each project
+  page.tsx               # Main hero, work, about, and contact sections
+  globals.css            # Tokens, reset, keyframes, arcade moments styles
+  work/[slug]/page.tsx   # Static mission briefing route for each project
 components/
   intro/
     Loader.tsx           # 000% to 100% boot sequence counter overlay
@@ -61,16 +61,22 @@ components/
     WorkSection.tsx      # Section header, project list, hover coordinator
     WorkRow.tsx          # Interactive project row (hover dim, touch expand)
     FloatingPreview.tsx  # Cursor-following preview container
-    PreviewCard.tsx      # Preview body (art, level, stats, XP bar)
-    PreviewArt.tsx       # Pure CSS shape compositions (island, video, api, gantt)
+    ArcadeCabinet.tsx    # CRT power-on, coin blink, ready flash, and glitch hop
+    StageScreen.tsx      # STAGE header, sprite, BOSS line, HUD stats, and chips
+    PixelSprite.tsx      # Pure CSS pixel sprites (repos, vectors, tenants, bars)
+  about/
+    AboutSection.tsx     # Player card, skill tree, perks, and quest log
+  contact/
+    ContactSection.tsx   # CONTINUE countdown, coin drop, contact menu, and footer
   ui/
     XpBar.tsx            # 10-segment XP bar
-    StatusPill.tsx       # Live / WIP / Planned / Shipped status pills
+    StatusPill.tsx       # Live / WIP / Planned / Done / Featured status pills
     Cta.tsx              # Link CTA with hover animation
 content/
-  projects.ts            # Typed project definitions
+  projects.ts            # Real project definitions and mission metrics
+  skills.ts              # Skill groups, perks, and internship quest log
 lib/
-  motion.ts              # Timings, easings, lerp constants
+  motion.ts              # Timings, easings, lerp constants, and arcade delays
   css.ts                 # CSS variable typed helpers
   hooks/
     useInView.ts         # Scroll intersection hook
@@ -86,8 +92,6 @@ scripts/
   screenshots.mjs        # Automated visual regression test harness
 ```
 
-## Placeholders & TODOs
+## Manual Setup Notes
 
-- `TODO(soliman)`: Replace project titles, stats, tags, and years in `content/projects.ts` with real work.
-- `TODO(soliman)`: Expand `/work/[slug]` pages into full write-ups/case studies.
-- `TODO(soliman)`: Update nav links (`about`, `contact`) to destination sections or pages.
+- **CV PDF:** Place `Soliman_Ahmed_CV.pdf` into the `/public` directory so the download link on the contact screen resolves directly.

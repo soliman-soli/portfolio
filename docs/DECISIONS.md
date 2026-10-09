@@ -46,6 +46,26 @@ Plain-language rationale for every major choice made while rebuilding Soliman's 
   - Bound `aria-expanded` dynamically on touch devices (`hover: none`) when rows are tapped.
   - Fallbacks for `prefers-reduced-motion` and `scripting: none` ensuring content is instantly visible and navigable.
 
+## 7. Arcade Moments Only
+
+- **Choice:** Confined retro arcade CRT scanlines, phosphor bloom, and the Press Start 2P pixel font strictly to focused arcade moments (the project hover cabinet screen and the `#contact` Continue terminal).
+- **Why:** The primary goal of the portfolio is professional communication for engineering recruiters. Making the whole website CRT-styled would severely harm readability and cause visual fatigue. Scoping arcade elements creates memorable delight without sacrificing clean, legible JetBrains Mono detail typography.
+
+## 8. Cabinet State Model
+
+- **Choice:** Decoupled high-frequency cursor tracking (using `requestAnimationFrame` and direct DOM style mutation) from project selection state (`activeProject`, `bootId`, `isGlitchHop`).
+- **Why:** Mouse movement fires up to 120 times per second. By keeping position lerping in direct DOM transforms and only updating React state when the pointer crosses row boundaries (`pointerenter`), the cabinet avoids any per-frame React virtual DOM reconciliation while retriggering boot CSS animations via deterministic keying.
+
+## 9. Content Lives in `content/*.ts`, Components Stay Content-Free
+
+- **Choice:** Extracted all resume data, project statistics, skill trees, perks, and quest logs into `content/skills.ts` and `content/projects.ts`.
+- **Why:** Eliminates hardcoded strings within JSX components. Soliman can adjust his metrics, skills, levels, and project details in pure TypeScript data files with full type safety and zero risk of breaking layout or animation code.
+
+## 10. Contact is Never Gated
+
+- **Choice:** Made the arcade coin-drop interaction completely optional: provided an immediate "skip ▸ show contacts" fallback, bypassed all gating in `prefers-reduced-motion` mode or with JavaScript disabled (`<noscript>`), and ensured contact links are standard, accessible semantic anchors.
+- **Why:** While the retro `CONTINUE?` countdown and coin mechanism provide immersive arcade flavoring, recruiters on tight deadlines must never be blocked or frustrated when looking for an email or CV download.
+
 ---
 
 ## Proposed Changes (Not Applied)
@@ -55,3 +75,4 @@ Per instructions, any potential improvements outside the allowed list are record
 1. **Canvas/WebGL Grid:** A GPU-rendered grid shader instead of CSS radial-masked gradients could allow interactive light ripples on mouse movement.
 2. **Dynamic Work Slugs & Markdown Content:** Integrating MDX files for full project case studies in `/work/[slug]`.
 3. **Sound FX on Boot:** Optional subtle synthesized 8-bit audio clicks for the 0-100% counter tick.
+

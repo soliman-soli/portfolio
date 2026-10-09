@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useInView } from '@/lib/hooks/useInView'
+import { useMediaQuery, REDUCED_MOTION } from '@/lib/hooks/useMediaQuery'
 
 export function ContactSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -9,22 +10,8 @@ export function ContactSection() {
   const [coinDropping, setCoinDropping] = useState(false)
   const [flashing, setFlashing] = useState(false)
   const [countdown, setCountdown] = useState(9)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const prefersReducedMotion = useMediaQuery(REDUCED_MOTION)
   const isIn = useInView(sectionRef, 0.15)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (mq.matches) {
-      setPrefersReducedMotion(true)
-      setUnlocked(true)
-    }
-    const handler = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches)
-      if (e.matches) setUnlocked(true)
-    }
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
 
   // 9..0 countdown once in view, loops back to 9, stops when unlocked
   useEffect(() => {

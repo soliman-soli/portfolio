@@ -1,23 +1,15 @@
-// Captures the reference states used to compare the rebuild against the
-// original prototype.
+// Captures reference and verification screenshots.
 //
 //   node scripts/screenshots.mjs original   -> reference/baseline/
-//   node scripts/screenshots.mjs app        -> reference/current/   (needs `pnpm dev` or `pnpm start` on :3000)
+//   node scripts/screenshots.mjs app        -> reference/current/   (needs local server running)
 //
-// States per viewport:
-//   a-loader     loader frozen at ~50% (fake clock: easeInOutCubic hits 0.5 at t = 950ms)
-//   b-hero       hero fully revealed, no mouse
-//   b2-crosshair hero with the mouse parked (desktop only)
-//   c-hover      work list, row 2 hovered with a mouse (desktop only)
-//   d-expanded   work list, row 1 tapped open (mobile only, hover: none)
-//   e-reduced    hero with prefers-reduced-motion (desktop only)
 import { chromium } from 'playwright'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const target = process.argv[2] ?? 'original'
+const target = process.argv[2] ?? 'app'
 
 const TARGETS = {
   original: {
@@ -40,9 +32,7 @@ const VIEWPORTS = [
   { name: 'mobile', width: 390, height: 844, mobile: true },
 ]
 
-// Long enough for loader (1900 + 260 + 450) plus the slowest reveal (~2.3s).
 const SETTLE_MS = 5400
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 async function newPage(browser, vp, extra = {}) {
@@ -56,14 +46,17 @@ async function newPage(browser, vp, extra = {}) {
   return { context, page: await context.newPage() }
 }
 
-async function scrollToWork(page, rowSel) {
-  await page.evaluate(() => {
-    const el = document.getElementById('work')
-    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: 'instant' })
-  })
-  // let IntersectionObserver fire and the staggered rise finish (3*90ms + 900ms)
-  await page.waitForSelector(`${rowSel}:nth-child(4)`)
-  await sleep(1600)
+async function scrollToSection(page, sectionId) {
+  await page.evaluate((id) => {
+    const el = document.getElementById(id)
+    if (el) {
+      window.scrollTo({
+        top: el.getBoundingClientRect().top + window.scrollY,
+        behavior: 'instant',
+      })
+    }
+  }, sectionId)
+  await sleep(1000)
 }
 
 async function run() {
@@ -73,7 +66,7 @@ async function run() {
     page.screenshot({ path: path.join(cfg.out, `${vp.name}-${name}.png`) })
 
   for (const vp of VIEWPORTS) {
-    // a) loader at ~50%
+    // a) Loader at ~50%
     {
       const { context, page } = await newPage(browser, vp)
       await page.clock.install({ time: 0 })
@@ -85,7 +78,7 @@ async function run() {
       await context.close()
     }
 
-    // b) hero revealed
+    // b) Hero revealed
     {
       const { context, page } = await newPage(browser, vp)
       await page.goto(cfg.url, { waitUntil: 'load' })
@@ -102,37 +95,88 @@ async function run() {
     }
 
     if (!vp.mobile) {
-      // c) row 2 hovered
+      // Desktop arcade cabinet tests
       const { context, page } = await newPage(browser, vp)
       await page.goto(cfg.url, { waitUntil: 'load' })
       await page.evaluate(() => document.fonts.ready)
       await sleep(SETTLE_MS)
-      await scrollToWork(page, cfg.row)
-      const box = await page.locator(`${cfg.row}:nth-child(2)`).boundingBox()
-      await page.mouse.move(box.x + box.width * 0.35, box.y + box.height / 2, { steps: 8 })
-      await sleep(900)
-      await shot(page, vp, 'c-hover')
-      await context.close()
-    } else {
-      // d) row 1 expanded by tap
-      const { context, page } = await newPage(browser, vp)
-      await page.goto(cfg.url, { waitUntil: 'load' })
-      await page.evaluate(() => document.fonts.ready)
-      await sleep(SETTLE_MS)
-      await scrollToWork(page, cfg.row)
-      await page.locator(`${cfg.row}:nth-child(1)`).tap()
-      await sleep(400)
-      await shot(page, vp, 'd-expanded')
-      await context.close()
-    }
+      await scrollToSection(page, 'work')
 
-    if (!vp.mobile) {
-      // e) reduced motion: no loader, everything visible immediately
-      const { context, page } = await newPage(browser, vp, { reducedMotion: 'reduce' })
+      // c1) Cabinet at 2s after hovering row 01
+      const row1 = await page.locator(`${cfg.row}:nth-child(1)`).boundingBox()
+      if (row1) {
+        await page.mouse.move(row1.x + row1.width * 0.35, row1.y + row1.height / 2, { steps: 8 })
+        await sleep(2000)
+        await shot(page, vp, 'c-cabinet-boot')
+
+        // c2) Cabinet right after hopping to row 03 (glitch swap)
+        const row3 = await page.locator(`${cfg.row}:nth-child(3)`).boundingBox()
+        if (row3) {
+          await page.mouse.move(row3.x + row3.width * 0.35, row3.y + row3.height / 2, { steps: 5 })
+          await sleep(350)
+          await shot(page, vp, 'c2-cabinet-hop')
+        }
+      }
+
+      // f) About section
+      await scrollToSection(page, 'about')
+      await sleep(800)
+      await shot(page, vp, 'f-about')
+
+      // g1) Contact screen before inserting coin
+      await scrollToSection(page, 'contact')
+      await sleep(1200)
+      await shot(page, vp, 'g-contact-before')
+
+      // g2) Contact screen after inserting coin
+      const coinBtn = page.locator('#contact button.arcade-coin-btn')
+      if (await coinBtn.count()) {
+        await coinBtn.click()
+        await sleep(900)
+        await shot(page, vp, 'g2-contact-after')
+      }
+
+      await context.close()
+
+      // e) Reduced motion: desktop capture of contact section
+      {
+        const { context: rmContext, page: rmPage } = await newPage(browser, vp, {
+          reducedMotion: 'reduce',
+        })
+        await rmPage.goto(cfg.url, { waitUntil: 'load' })
+        await rmPage.evaluate(() => document.fonts.ready)
+        await sleep(400)
+        await scrollToSection(rmPage, 'contact')
+        await sleep(400)
+        await shot(rmPage, vp, 'e-contact-reduced')
+        await rmContext.close()
+      }
+    } else {
+      // Mobile tests
+      const { context, page } = await newPage(browser, vp)
       await page.goto(cfg.url, { waitUntil: 'load' })
       await page.evaluate(() => document.fonts.ready)
-      await sleep(300)
-      await shot(page, vp, 'e-reduced')
+      await sleep(SETTLE_MS)
+
+      // d) Mobile expanded row
+      await scrollToSection(page, 'work')
+      await page.waitForSelector(`${cfg.row}:nth-child(4)`)
+      await sleep(1600)
+      await page.locator(`${cfg.row}:nth-child(1)`).tap()
+      // Let mobile stage screen boot animation complete
+      await sleep(2200)
+      await shot(page, vp, 'd-expanded')
+
+      // f) Mobile About section
+      await scrollToSection(page, 'about')
+      await sleep(800)
+      await shot(page, vp, 'f-about')
+
+      // g) Mobile Contact screen
+      await scrollToSection(page, 'contact')
+      await sleep(1000)
+      await shot(page, vp, 'g-contact')
+
       await context.close()
     }
   }

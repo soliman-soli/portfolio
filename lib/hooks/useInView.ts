@@ -11,6 +11,7 @@ export function useInView(ref: RefObject<Element | null>, threshold: number): bo
   const [inView, setInView] = useState(false)
 
   useEffect(() => {
+    if (inView) return
     const el = ref.current
     if (!el) return
 
@@ -31,7 +32,7 @@ export function useInView(ref: RefObject<Element | null>, threshold: number): bo
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [ref, threshold])
+  }, [ref, threshold, inView])
 
   return inView
 }

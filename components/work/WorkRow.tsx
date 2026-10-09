@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import type { Project } from '@/content/projects'
 import { StatusPill } from '../ui/StatusPill'
@@ -27,41 +27,38 @@ export function WorkRow({
   onRowFocus,
   onRowBlur,
 }: WorkRowProps) {
-  const rowRef = useRef<HTMLAnchorElement & HTMLDivElement>(null)
+  const rowRef = useRef<HTMLAnchorElement>(null)
   const [isOpen, setIsOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const isIn = useInView(rowRef, ROW_REVEAL_THRESHOLD)
-  const isTouchDevice = useIsTouch()
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const isTouch = mounted && isTouchDevice
+  const isTouch = useIsTouch()
 
   const handleClick = (e: React.MouseEvent) => {
-    if (isTouch) {
+    if (window.matchMedia('(hover: none)').matches) {
+      const target = e.target as HTMLElement
+      // If the user tapped the PRESS START button, allow default link navigation
+      if (target.closest('.arcade-start-btn')) {
+        return
+      }
       e.preventDefault()
       setIsOpen((prev) => !prev)
     }
   }
 
-  const commonProps = {
-    ref: rowRef,
-    'data-row': true,
-    'data-i': index,
-    style: cssVars({ '--i': index }),
-    className: `work-row group ${isIn ? 'is-in' : ''} ${isOpen ? 'is-open' : ''}`,
-    'aria-expanded': isTouch ? isOpen : undefined,
-    onClick: handleClick,
-    onPointerEnter: (e: React.PointerEvent) => onPointerEnter?.(e, project),
-    onPointerMove,
-    onFocus: (e: React.FocusEvent<HTMLElement>) => onRowFocus?.(e, project),
-    onBlur: onRowBlur,
-  }
-
-  const innerContent = (
-    <>
+  return (
+    <Link
+      ref={rowRef}
+      href={`/work/${project.slug}`}
+      data-row
+      data-i={index}
+      style={cssVars({ '--i': index })}
+      className={`work-row group ${isIn ? 'is-in' : ''} ${isOpen ? 'is-open' : ''}`}
+      aria-expanded={isTouch ? isOpen : undefined}
+      onClick={handleClick}
+      onPointerEnter={(e) => onPointerEnter?.(e, project)}
+      onPointerMove={onPointerMove}
+      onFocus={(e) => onRowFocus?.(e, project)}
+      onBlur={onRowBlur}
+    >
       <span className="mono row-idx">{project.index}</span>
       <span className="row-title font-[800] text-row font-disp font-stretch-125">
         {project.title}
@@ -91,20 +88,6 @@ export function WorkRow({
           </div>
         )}
       </div>
-    </>
-  )
-
-  if (isTouch) {
-    return (
-      <div role="region" aria-label={project.title} {...commonProps}>
-        {innerContent}
-      </div>
-    )
-  }
-
-  return (
-    <Link href={`/work/${project.slug}`} {...commonProps}>
-      {innerContent}
     </Link>
   )
 }

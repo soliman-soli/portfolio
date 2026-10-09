@@ -1,6 +1,5 @@
 import type { Project } from '@/content/projects'
 import { PixelSprite } from './PixelSprite'
-import Link from 'next/link'
 
 interface StageScreenProps {
   project: Project
@@ -36,8 +35,8 @@ export function StageScreen({ project, isTouch = false }: StageScreenProps) {
       <div className="arcade-stagger-4 hud-stats flex flex-col gap-6">
         {project.highlights.map((h, i) => (
           <div key={h.label} className="hud-stat-row flex flex-col gap-2">
-            <div className="flex justify-between items-baseline mono text-[11px]">
-              <span className="text-mut truncate max-w-[200px]">{h.label}</span>
+            <div className="flex justify-between items-baseline mono text-[11px] gap-8">
+              <span className="text-mut flex-1 leading-tight">{h.label}</span>
               <b className="font-mono text-ink font-bold shrink-0">{h.value}</b>
             </div>
             <div className="xp" aria-hidden="true">
@@ -71,12 +70,13 @@ export function StageScreen({ project, isTouch = false }: StageScreenProps) {
       {/* PRESS START line */}
       <div className="arcade-stagger-6 pt-2">
         {isTouch ? (
-          <Link
-            href={`/work/${project.slug}`}
-            className="font-pixel text-[10px] text-on-neon bg-[var(--color-neon)] py-12 px-16 rounded-block text-center flex items-center justify-center min-h-[44px] tracking-wider cursor-pointer active:scale-[0.98] transition-transform"
+          <span
+            className="arcade-start-btn font-pixel text-[10px] text-on-neon bg-[var(--color-neon)] py-12 px-16 rounded-block text-center flex items-center justify-center min-h-[44px] tracking-wider cursor-pointer active:scale-[0.98] transition-transform select-none"
+            role="button"
+            tabIndex={0}
           >
             PRESS START &#9656; open mission
-          </Link>
+          </span>
         ) : (
           <div className="text-center py-4">
             <span className="font-pixel text-[10px] text-[var(--color-neon)] arcade-blink-start tracking-wider">
