@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Project } from '@/content/projects'
 import { StatusPill } from '../ui/StatusPill'
 import { ArcadeCabinet } from './ArcadeCabinet'
-import { DitherFrame } from './DitherFrame'
+import { DitherFrame } from '@/components/ui/DitherFrame'
 import { useInView } from '@/lib/hooks/useInView'
 import { ROW_REVEAL_THRESHOLD } from '@/lib/motion'
 import { cssVars } from '@/lib/css'
@@ -81,16 +81,15 @@ export function WorkRow({
       <span className="row-title font-[800] text-row font-disp font-stretch-125">
         {project.title}
       </span>
-      <span className="mono text-mut narrow:hidden">{project.tag}</span>
-      <span className="mono text-mut narrow:hidden">{project.year}</span>
       <StatusPill status={project.status} label={project.statusLabel} />
 
       {/* Inline details for touch devices */}
       <div className="row-more" aria-hidden={!isOpen}>
         {isOpen && (
-          <div className="relative mt-16 w-full" key={`${project.slug}:open`}>
-            <DitherFrame isActive={true} isGlitchHop={false} isTouch={true} />
-            <ArcadeCabinet project={project} isGlitchHop={false} isTouch={true} />
+          <div className="mt-16 w-full" key={`${project.slug}:open`}>
+            <DitherFrame band={14}>
+              <ArcadeCabinet project={project} isGlitchHop={false} isTouch={true} />
+            </DitherFrame>
           </div>
         )}
       </div>

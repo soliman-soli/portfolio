@@ -101,6 +101,7 @@ async function run() {
       await page.evaluate(() => document.fonts.ready)
       await sleep(SETTLE_MS)
       await scrollToSection(page, 'work')
+      await shot(page, vp, 'c0-work-list')
 
       // c1) Cabinet at 1s after hovering row 01
       const row1 = await page.locator(`${cfg.row}:nth-child(1)`).boundingBox()
@@ -138,7 +139,17 @@ async function run() {
 
       await context.close()
 
-      // e) Reduced motion captures: cabinet + contact section
+      // h) Desktop project page capture
+      if (target === 'app') {
+        const { context: projContext, page: projPage } = await newPage(browser, vp)
+        await projPage.goto(new URL('work/ai-candidate-evaluation', cfg.url).href, { waitUntil: 'load' })
+        await projPage.evaluate(() => document.fonts.ready)
+        await sleep(800)
+        await shot(projPage, vp, 'h-project-desktop')
+        await projContext.close()
+      }
+
+      // e) Reduced motion captures: cabinet + contact section + project page
       {
         const { context: rmContext, page: rmPage } = await newPage(browser, vp, {
           reducedMotion: 'reduce',
@@ -156,6 +167,14 @@ async function run() {
         await scrollToSection(rmPage, 'contact')
         await sleep(400)
         await shot(rmPage, vp, 'e-contact-reduced')
+
+        if (target === 'app') {
+          await rmPage.goto(new URL('work/ai-candidate-evaluation', cfg.url).href, { waitUntil: 'load' })
+          await rmPage.evaluate(() => document.fonts.ready)
+          await sleep(600)
+          await shot(rmPage, vp, 'h-project-reduced')
+        }
+
         await rmContext.close()
       }
     } else {
@@ -165,10 +184,13 @@ async function run() {
       await page.evaluate(() => document.fonts.ready)
       await sleep(SETTLE_MS)
 
-      // d) Mobile expanded row
+      // d0) Mobile work list before tap
       await scrollToSection(page, 'work')
       await page.waitForSelector(`${cfg.row}:nth-child(4)`)
-      await sleep(1600)
+      await sleep(1000)
+      await shot(page, vp, 'd0-work-list')
+
+      // d) Mobile expanded row
       await page.locator(`${cfg.row}:nth-child(1)`).tap()
       // Let mobile stage screen boot animation complete
       await sleep(1000)
@@ -185,6 +207,16 @@ async function run() {
       await shot(page, vp, 'g-contact')
 
       await context.close()
+
+      // h) Mobile project page
+      if (target === 'app') {
+        const { context: mProjContext, page: mProjPage } = await newPage(browser, vp)
+        await mProjPage.goto(new URL('work/ai-candidate-evaluation', cfg.url).href, { waitUntil: 'load' })
+        await mProjPage.evaluate(() => document.fonts.ready)
+        await sleep(800)
+        await shot(mProjPage, vp, 'h-project-mobile')
+        await mProjContext.close()
+      }
     }
   }
 

@@ -3,7 +3,7 @@
 import { forwardRef } from 'react'
 import type { Project } from '@/content/projects'
 import { ArcadeCabinet } from './ArcadeCabinet'
-import { DitherFrame } from './DitherFrame'
+import { DitherFrame } from '@/components/ui/DitherFrame'
 
 interface FloatingPreviewProps {
   innerRef: React.RefObject<HTMLDivElement | null>
@@ -25,15 +25,15 @@ export const FloatingPreview = forwardRef<HTMLDivElement, FloatingPreviewProps>(
           <DitherFrame
             isActive={isVisible}
             isGlitchHop={isGlitchHop}
-            isTouch={false}
-          />
-          {activeProject && (
-            <ArcadeCabinet
-              key={`${activeProject.slug}:${bootId}`}
-              project={activeProject}
-              isGlitchHop={isGlitchHop}
-            />
-          )}
+          >
+            {activeProject && (
+              <ArcadeCabinet
+                key={`${activeProject.slug}:${bootId}`}
+                project={activeProject}
+                isGlitchHop={isGlitchHop}
+              />
+            )}
+          </DitherFrame>
         </div>
       </div>
     )

@@ -125,7 +125,7 @@
     --corner-inset: 14px;
     --corner-size: 18px;
     --corner-stroke: 1.5px;
-    --row-cols: 56px 1fr 230px 70px 130px;
+    --row-cols: 56px 1fr auto;
     --row-cols-narrow: 34px 1fr auto;
     --preview-width: clamp(440px, 34vw, 520px);
     --preview-right-inset: 40px;

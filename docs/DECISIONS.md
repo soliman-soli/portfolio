@@ -81,6 +81,16 @@ Plain-language rationale for every major choice made while rebuilding Soliman's 
 - **Choice:** Frame is a throttled canvas Bayer-dither, paused when hidden.
 - **Why:** Delivers a flowing organic halftone field surrounding the card using a native 8x8 Bayer matrix dither and cheap multi-sine noise rendered at low resolution (3.5px dots) and pixelated up. Throttled to ~14 fps and paused whenever the cabinet is hidden or in prefers-reduced-motion to guarantee <2ms CPU overhead and zero per-frame React reconciliations.
 
+## 14. Work Rows Simplified
+
+- **Choice:** Work rows show only index, title and status pill.
+- **Why:** Removes visual clutter and secondary tag/year columns from the table view, maximizing horizontal breathing room for the project title and pinning the status pill to the right edge. Full tag and year context remains in the hover cabinet and project pages.
+
+## 15. Shared DitherFrame Component
+
+- **Choice:** DitherFrame is one shared canvas component used by the cabinet and the project page.
+- **Why:** Centralizes the 8x8 Bayer matrix dither rendering, dynamic resolution capping (max 200x260 dots), and intersection/visibility observer management into `@/components/ui/DitherFrame`, ensuring identical aesthetics and zero code duplication across the site.
+
 ---
 
 ## Proposed Changes (Not Applied)
