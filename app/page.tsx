@@ -8,6 +8,7 @@ import { Loader } from '@/components/intro/Loader'
 import { Hero } from '@/components/hero/Hero'
 import { WorkSection } from '@/components/work/WorkSection'
 import { AboutSection } from '@/components/about/AboutSection'
+import { ContactSection } from '@/components/contact/ContactSection'
 
 export default function Home() {
   const replayRef = useRef<(() => void) | null>(null)
@@ -23,6 +24,7 @@ export default function Home() {
         <Hero onReplay={() => replayRef.current?.()} />
         <WorkSection />
         <AboutSection />
+        <ContactSection />
       </main>
     </>
   )
