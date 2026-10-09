@@ -14,8 +14,10 @@ import {
   PREVIEW_TOP_MIN,
   PREVIEW_BOTTOM_CLEARANCE,
 } from '@/lib/motion'
+import { useIsTouch } from '@/lib/hooks/useIsTouch'
 
 export function WorkSection() {
+  const isTouch = useIsTouch()
   const listRef = useRef<HTMLDivElement>(null)
   const pvRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
@@ -109,9 +111,9 @@ export function WorkSection() {
           </sup>
         </h2>
         <p className="mono text-mut text-right narrow:text-left m-0">
-          2025 &mdash; 2026
+          2023 &mdash; 2024
           <br />
-          hover a row to preview
+          {isTouch ? 'tap a row to start the game' : 'hover a row to start the game'}
         </p>
       </div>
 
@@ -133,8 +135,13 @@ export function WorkSection() {
       </div>
 
       <div className="wfoot mono flex justify-between items-center mt-36 text-mut">
-        <span>placeholder projects, swap in the real ones</span>
-        <a className="cta" href="#">
+        <span>every number on this page is a real result from my projects and internship</span>
+        <a
+          className="cta"
+          href="https://github.com/soliman-ahmed"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           all projects on github <span aria-hidden="true">&rarr;</span>
         </a>
       </div>

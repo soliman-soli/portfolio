@@ -36,7 +36,7 @@ export function Hero({ onReplay }: HeroProps) {
           </a>
         </div>
         <span className="mono status inline-flex items-center gap-9 border border-[var(--color-line)] rounded-pill px-14 py-6 text-ink pulse-dot">
-          open to internships
+          open to backend &amp; AI roles
         </span>
       </nav>
 
@@ -49,22 +49,22 @@ export function Hero({ onReplay }: HeroProps) {
           >
             Computer engineering student building{' '}
             <em className="text-ink not-italic">
-              backends, systems and desktop tools
-            </em>{' '}
-            that feel like finished products.
+              backends and AI systems
+            </em>
+            : RAG pipelines, fast APIs, and tools that feel like finished products.
           </p>
           <div
             className="reveal-fade stack mono flex flex-col gap-4 text-mut text-right narrow:text-left"
             style={cssVars({ '--d': 0.35 })}
           >
             <span>
-              <b className="text-ink font-normal">C++</b> / Qt
+              <b className="text-ink font-normal">Python</b> / FastAPI
             </span>
             <span>
-              <b className="text-ink font-normal">TypeScript</b> / React
+              <b className="text-ink font-normal">LangChain</b> / Qdrant
             </span>
             <span>
-              <b className="text-ink font-normal">Node</b> / Next.js
+              <b className="text-ink font-normal">React</b> / Docker
             </span>
           </div>
         </div>

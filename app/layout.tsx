@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Archivo, JetBrains_Mono } from 'next/font/google'
+import { Archivo, JetBrains_Mono, Press_Start_2P } from 'next/font/google'
 import './globals.css'
 
 const archivo = Archivo({
@@ -16,10 +16,17 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains',
 })
 
+const pressStart2P = Press_Start_2P({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'swap',
+  variable: '--font-pixel',
+})
+
 export const metadata: Metadata = {
-  title: 'Soliman - Portfolio',
+  title: 'Soliman Ahmed - Backend Engineer | AI Systems & RAG',
   description:
-    'Computer engineering student building backends, systems and desktop tools that feel like finished products.',
+    'Backend-focused computer engineering student building production-grade RAG pipelines, AI evaluation systems and scalable REST APIs.',
 }
 
 export default function RootLayout({
@@ -30,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${jetbrainsMono.variable}`}
+      className={`${archivo.variable} ${jetbrainsMono.variable} ${pressStart2P.variable}`}
     >
       <body>
         <a href="#work" className="skip-link mono">

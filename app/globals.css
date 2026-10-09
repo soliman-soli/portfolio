@@ -42,6 +42,7 @@
   --font-*: initial;
   --font-disp: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, Menlo, Consolas, monospace;
+  --font-pixel: var(--font-pixel), monospace;
 }
 
 @theme {
