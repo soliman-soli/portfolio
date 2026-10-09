@@ -3,6 +3,7 @@
 import { forwardRef } from 'react'
 import type { Project } from '@/content/projects'
 import { ArcadeCabinet } from './ArcadeCabinet'
+import { DitherFrame } from './DitherFrame'
 
 interface FloatingPreviewProps {
   innerRef: React.RefObject<HTMLDivElement | null>
@@ -16,9 +17,16 @@ export const FloatingPreview = forwardRef<HTMLDivElement, FloatingPreviewProps>(
     { innerRef, activeProject, bootId, isGlitchHop },
     ref
   ) {
+    const isVisible = Boolean(activeProject)
+
     return (
       <div ref={ref} id="pv" className="preview" aria-hidden="true">
-        <div ref={innerRef} className="preview-inner" id="pvin">
+        <div ref={innerRef} className="preview-inner relative" id="pvin">
+          <DitherFrame
+            isActive={isVisible}
+            isGlitchHop={isGlitchHop}
+            isTouch={false}
+          />
           {activeProject && (
             <ArcadeCabinet
               key={`${activeProject.slug}:${bootId}`}

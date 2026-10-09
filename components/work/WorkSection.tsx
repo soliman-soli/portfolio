@@ -1,16 +1,13 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { projects, type Project } from '@/content/projects'
 import { WorkRow } from './WorkRow'
 import { FloatingPreview } from './FloatingPreview'
 import {
   PREVIEW_LERP,
-  PREVIEW_OFFSET_X,
-  PREVIEW_OFFSET_Y,
-  PREVIEW_RIGHT_CLEARANCE,
-  PREVIEW_TOP_MIN,
-  PREVIEW_BOTTOM_CLEARANCE,
+  PREVIEW_BAND_DESKTOP,
+  PREVIEW_VIEWPORT_PADDING,
 } from '@/lib/motion'
 import { useIsTouch } from '@/lib/hooks/useIsTouch'
 
@@ -19,6 +16,7 @@ export function WorkSection() {
   const listRef = useRef<HTMLDivElement>(null)
   const pvRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
+  const activeRowElRef = useRef<HTMLElement | null>(null)
 
   // Cabinet active state
   const [activeProject, setActiveProject] = useState<Project | null>(null)
@@ -26,38 +24,34 @@ export function WorkSection() {
   const [isGlitchHop, setIsGlitchHop] = useState(false)
   const wasActiveRef = useRef(false)
 
-  // Motion coordinates
+  // Motion coordinates (vertical-only lerp, docked to right gutter)
   const motionRef = useRef({
-    tx: 0,
     ty: 0,
-    x: 0,
     y: 0,
     running: false,
   })
 
-  const aim = (clientX: number, clientY: number) => {
-    const tx = Math.min(
-      clientX + PREVIEW_OFFSET_X,
-      window.innerWidth - PREVIEW_RIGHT_CLEARANCE
-    )
-    const ty = Math.max(
-      PREVIEW_TOP_MIN,
-      Math.min(
-        clientY + PREVIEW_OFFSET_Y,
-        window.innerHeight - PREVIEW_BOTTOM_CLEARANCE
-      )
-    )
-    motionRef.current.tx = tx
-    motionRef.current.ty = ty
+  const aimRow = (rowRect: DOMRect) => {
+    const rowCenterY = rowRect.top + rowRect.height / 2
+    const cardH = innerRef.current?.offsetHeight || 520
+    const targetY = rowCenterY - cardH / 2
+
+    const band = PREVIEW_BAND_DESKTOP
+    const padding = PREVIEW_VIEWPORT_PADDING
+    const minY = band + padding
+    const maxY = window.innerHeight - cardH - band - padding
+
+    // Clamp inside viewport, accounting for band thickness
+    const clampedY = Math.max(minY, Math.min(targetY, Math.max(minY, maxY)))
+    motionRef.current.ty = clampedY
   }
 
   const loop = () => {
     const m = motionRef.current
-    m.x += (m.tx - m.x) * PREVIEW_LERP
     m.y += (m.ty - m.y) * PREVIEW_LERP
 
     if (pvRef.current) {
-      pvRef.current.style.transform = `translate(${m.x.toFixed(1)}px, ${m.y.toFixed(1)}px)`
+      pvRef.current.style.transform = `translateY(${m.y.toFixed(1)}px)`
     }
 
     if (m.running) {
@@ -65,8 +59,21 @@ export function WorkSection() {
     }
   }
 
+  // Update vertical centering on window scroll while a row is hovered
+  useEffect(() => {
+    const onScroll = () => {
+      if (activeRowElRef.current && wasActiveRef.current) {
+        aimRow(activeRowElRef.current.getBoundingClientRect())
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const handlePointerEnter = (e: React.PointerEvent, project: Project) => {
     if (e.pointerType !== 'mouse') return
+    const rowEl = e.currentTarget as HTMLElement
+    activeRowElRef.current = rowEl
 
     if (!wasActiveRef.current) {
       wasActiveRef.current = true
@@ -77,13 +84,13 @@ export function WorkSection() {
     }
 
     setActiveProject(project)
-    aim(e.clientX, e.clientY)
+    aimRow(rowEl.getBoundingClientRect())
 
     const pv = pvRef.current
     if (pv) {
       if (!pv.classList.contains('is-on')) {
-        motionRef.current.x = motionRef.current.tx
         motionRef.current.y = motionRef.current.ty
+        pv.style.transform = `translateY(${motionRef.current.y.toFixed(1)}px)`
       }
       pv.classList.add('is-on')
     }
@@ -95,12 +102,13 @@ export function WorkSection() {
   }
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (e.pointerType === 'mouse') {
-      aim(e.clientX, e.clientY)
+    if (e.pointerType === 'mouse' && activeRowElRef.current) {
+      aimRow(activeRowElRef.current.getBoundingClientRect())
     }
   }
 
   const handlePointerLeaveList = () => {
+    activeRowElRef.current = null
     wasActiveRef.current = false
     setActiveProject(null)
     setIsGlitchHop(false)
@@ -115,7 +123,9 @@ export function WorkSection() {
     e: React.FocusEvent<HTMLElement>,
     project: Project
   ) => {
-    const rect = e.currentTarget.getBoundingClientRect()
+    const rowEl = e.currentTarget as HTMLElement
+    activeRowElRef.current = rowEl
+
     if (!wasActiveRef.current) {
       wasActiveRef.current = true
       setBootId((b) => b + 1)
@@ -125,36 +135,26 @@ export function WorkSection() {
     }
 
     setActiveProject(project)
+    aimRow(rowEl.getBoundingClientRect())
 
-    // Position cabinet next to focused row
-    const tx = Math.min(
-      rect.left + Math.max(340, rect.width * 0.45),
-      window.innerWidth - PREVIEW_RIGHT_CLEARANCE
-    )
-    const ty = Math.max(
-      PREVIEW_TOP_MIN,
-      Math.min(
-        rect.top - 80,
-        window.innerHeight - PREVIEW_BOTTOM_CLEARANCE
-      )
-    )
+    const pv = pvRef.current
+    if (pv) {
+      if (!pv.classList.contains('is-on')) {
+        motionRef.current.y = motionRef.current.ty
+        pv.style.transform = `translateY(${motionRef.current.y.toFixed(1)}px)`
+      }
+      pv.classList.add('is-on')
+    }
 
-    motionRef.current.tx = tx
-    motionRef.current.ty = ty
-    motionRef.current.x = tx
-    motionRef.current.y = ty
-
-    if (pvRef.current) {
-      pvRef.current.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`
-      pvRef.current.classList.add('is-on')
+    if (!motionRef.current.running) {
+      motionRef.current.running = true
+      requestAnimationFrame(loop)
     }
   }
 
   const handleRowBlur = (e: React.FocusEvent<HTMLElement>) => {
     // If next focused target is outside list, hide
-    if (
-      !listRef.current?.contains(e.relatedTarget as Node | null)
-    ) {
+    if (!listRef.current?.contains(e.relatedTarget as Node | null)) {
       handlePointerLeaveList()
     }
   }

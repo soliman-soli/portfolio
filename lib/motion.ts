@@ -42,35 +42,42 @@ export const CROSSHAIR_DIGITS = 4
 /** Fade duration for the crosshair marker entering/exiting hero (~150ms). */
 export const CROSSHAIR_FADE_MS = 150
 
-/* ---------- floating preview ---------- */
+/* ---------- floating preview & docking ---------- */
 
-/** Fraction of the remaining distance the card covers each frame. */
+/** Fraction of the remaining distance the card covers each frame (vertical rAF lerp). */
 export const PREVIEW_LERP = 0.16
-/** Card sits this far right of the cursor. */
-export const PREVIEW_OFFSET_X = 28
-/** Card sits this far above the cursor. */
-export const PREVIEW_OFFSET_Y = -90
-/** Keep the card at least this far from the right edge (~340px card + 24px gap). */
-export const PREVIEW_RIGHT_CLEARANCE = 368
-/** Minimum distance from the top of the viewport. */
-export const PREVIEW_TOP_MIN = 12
-/** Keep the card's top at least this far above the bottom edge. */
-export const PREVIEW_BOTTOM_CLEARANCE = 440
+/** Right inset from the viewport edge in px. */
+export const PREVIEW_RIGHT_INSET = 40
+/** Band thickness for the dithered frame ring on desktop (px). */
+export const PREVIEW_BAND_DESKTOP = 32
+/** Band thickness for the touch inline panel (px). */
+export const PREVIEW_BAND_TOUCH = 14
+/** Viewport vertical margin padding around the card and frame (px). */
+export const PREVIEW_VIEWPORT_PADDING = 16
 
-/* ---------- arcade cabinet ---------- */
+/* ---------- animated dithered frame ---------- */
 
-/** CRT power-on duration (0-180ms). */
-export const ARCADE_POWERON_MS = 180
-/** INSERT COIN blinking duration (180-800ms = 620ms). */
-export const ARCADE_COIN_MS = 620
-/** PLAYER 1 READY flash duration (800-1100ms = 300ms). */
-export const ARCADE_READY_MS = 300
-/** Total boot time until stage screen starts revealing. */
-export const ARCADE_BOOT_TOTAL_MS = 1100
-/** Stagger per stage screen line. */
-export const ARCADE_STAGGER_MS = 60
-/** Glitch hop swap duration when hopping between rows. */
-export const ARCADE_GLITCH_MS = 250
+/** Frame rate for the Bayer dither noise animation (~12-15 fps). */
+export const DITHER_FPS = 14
+/** Time multiplier for slow organic drifting noise. */
+export const DITHER_SPEED = 0.0012
+/** Size of each canvas dot in CSS px (rendered at low-res and scaled up). */
+export const DITHER_DOT_SIZE = 3.5
+/** Row hop brightness boost duration in ms. */
+export const DITHER_HOP_BOOST_MS = 200
+/** Row hop field value boost (+0.2). */
+export const DITHER_HOP_BOOST = 0.2
+
+/* ---------- arcade cabinet boot sequence ---------- */
+
+/** Shorter CRT power-on duration (0-150ms). */
+export const ARCADE_POWERON_MS = 150
+/** Content stepped stagger per block (50ms). */
+export const ARCADE_STAGGER_MS = 50
+/** Total boot time until fully readable (<=600ms, ~410ms). */
+export const ARCADE_BOOT_TOTAL_MS = 450
+/** Glitch hop swap duration when hopping between rows (~200ms). */
+export const ARCADE_GLITCH_MS = 200
 
 /* ---------- work list ---------- */
 

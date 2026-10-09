@@ -127,18 +127,17 @@
     --corner-stroke: 1.5px;
     --row-cols: 56px 1fr 230px 70px 130px;
     --row-cols-narrow: 34px 1fr auto;
-    --preview-width: 340px;
+    --preview-width: clamp(440px, 34vw, 520px);
+    --preview-right-inset: 40px;
     --art-height: 150px;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 
     /* arcade timings and glows */
-    --arcade-poweron: 180ms;
-    --arcade-coin: 620ms;
-    --arcade-ready: 300ms;
-    --arcade-boot-total: 1100ms;
-    --arcade-stagger: 60ms;
-    --arcade-glitch: 250ms;
+    --arcade-poweron: 150ms;
+    --arcade-stagger: 50ms;
+    --arcade-glitch: 200ms;
+    --arcade-boot-total: 450ms;
     --color-scanline: rgba(0, 0, 0, 0.35);
     --color-neon-dim: rgba(204, 255, 46, 0.25);
   }
@@ -502,10 +501,10 @@
     }
   }
 
-  /* ---------- floating preview ---------- */
+  /* ---------- floating preview (docked right) ---------- */
   .preview {
     position: fixed;
-    left: 0;
+    right: var(--preview-right-inset);
     top: 0;
     width: var(--preview-width);
     pointer-events: none;
@@ -517,23 +516,35 @@
     opacity: 1;
   }
   .preview-inner {
+    position: relative;
     overflow: visible;
-    transform: scale(0.94) rotate(-1deg);
+    transform: scale(0.96);
     transition: transform var(--dur-preview-pop) var(--ease-reveal);
   }
   .preview.is-on .preview-inner {
     transform: none;
   }
 
+  /* Responsive clamp adjustments for 760-1100px viewports */
+  @media (min-width: 760px) and (max-width: 1100px) {
+    :root {
+      --preview-width: clamp(400px, 34vw, 520px);
+    }
+  }
+
   /* ---------- arcade cabinet ---------- */
   .arcade-cabinet {
     position: relative;
     width: var(--preview-width);
-    background: var(--color-art);
-    border: 2px solid var(--color-line);
+    background: var(--color-card);
+    border: 2px solid var(--color-neon);
     border-radius: var(--radius-screen);
-    box-shadow: inset 0 0 0 1px var(--color-neon-dim), 0 16px 40px rgba(0, 0, 0, 0.7);
+    box-shadow: inset 0 0 0 1px var(--color-neon-dim), 0 20px 50px rgba(0, 0, 0, 0.85);
     overflow: hidden;
+    z-index: 1;
+  }
+  .arcade-cabinet.is-touch {
+    width: 100%;
   }
 
   /* Scanlines overlay (arcade moments only) */
@@ -555,17 +566,17 @@
 
   /* Phosphor glow on pixel font inside cabinet */
   .arcade-cabinet .font-pixel {
-    text-shadow: 0 0 8px var(--color-neon-ping), 0 0 16px rgba(204, 255, 46, 0.35);
+    text-shadow: 0 0 8px rgba(204, 255, 46, 0.6), 0 0 16px rgba(204, 255, 46, 0.35);
   }
 
-  /* CRT power on line & flash (0 to 180ms) */
+  /* CRT power on line & flash (0 to 150ms) */
   .crt-power-on {
     position: absolute;
     inset: 0;
     z-index: 9;
     background: #000;
     pointer-events: none;
-    animation: crt-power 180ms cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+    animation: crt-power 150ms cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
   }
   .crt-power-on::after {
     content: '';
@@ -600,45 +611,9 @@
     }
   }
 
-  /* Arcade boot messages (INSERT COIN & PLAYER 1 READY) */
-  .arcade-boot-msg {
-    position: absolute;
-    inset: 0;
-    z-index: 6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-art);
-    pointer-events: none;
-  }
-
-  .arcade-coin-msg {
-    animation: coin-blink 620ms steps(1) 180ms forwards;
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  @keyframes coin-blink {
-    0%, 25% { opacity: 1; visibility: visible; }
-    26%, 50% { opacity: 0; visibility: visible; }
-    51%, 75% { opacity: 1; visibility: visible; }
-    76%, 100% { opacity: 0; visibility: hidden; }
-  }
-
-  .arcade-ready-msg {
-    animation: ready-flash 300ms steps(1) 800ms forwards;
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  @keyframes ready-flash {
-    0%, 80% { opacity: 1; visibility: visible; }
-    81%, 100% { opacity: 0; visibility: hidden; }
-  }
-
-  /* Stage screen appearance */
+  /* Stage screen appearance (150ms) */
   .arcade-cabinet.is-boot .arcade-stage-content {
-    animation: stage-appear 10ms steps(1) 1100ms both;
+    animation: stage-appear 10ms steps(1) 150ms both;
   }
   .arcade-cabinet.is-boot .arcade-stage-content.skip-delay {
     animation: none;
@@ -650,37 +625,39 @@
     100% { opacity: 1; }
   }
 
-  /* Glitch hop swap (250ms) */
+  /* Glitch hop swap (200ms) */
   .arcade-cabinet.is-glitch {
-    animation: glitch-hop 250ms steps(2) forwards;
+    animation: glitch-hop 200ms steps(2) forwards;
   }
 
   @keyframes glitch-hop {
     0% { transform: translate(0, 0); filter: brightness(1); }
-    25% { transform: translate(-3px, 1px); filter: brightness(1.6); }
-    50% { transform: translate(3px, -1px); filter: brightness(0.8); }
-    75% { transform: translate(-1px, 0); filter: brightness(1.3); }
+    33% { transform: translate(-3px, 1px); filter: brightness(1.6); }
+    66% { transform: translate(2px, -1px); filter: brightness(0.9); }
     100% { transform: translate(0, 0); filter: brightness(1); }
   }
 
-  /* Stepped stagger for stage lines */
+  /* Stepped stagger for stage lines (50ms per block) */
   .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-1 {
-    animation: stage-step 60ms steps(1) calc(1100ms + 0 * 60ms) both;
+    animation: stage-step 50ms steps(1) calc(150ms + 0 * 50ms) both;
   }
   .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-2 {
-    animation: stage-step 60ms steps(1) calc(1100ms + 1 * 60ms) both;
+    animation: stage-step 50ms steps(1) calc(150ms + 1 * 50ms) both;
   }
   .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-3 {
-    animation: stage-step 60ms steps(1) calc(1100ms + 2 * 60ms) both;
+    animation: stage-step 50ms steps(1) calc(150ms + 2 * 50ms) both;
   }
   .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-4 {
-    animation: stage-step 60ms steps(1) calc(1100ms + 3 * 60ms) both;
+    animation: stage-step 50ms steps(1) calc(150ms + 3 * 50ms) both;
   }
   .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-5 {
-    animation: stage-step 60ms steps(1) calc(1100ms + 4 * 60ms) both;
+    animation: stage-step 50ms steps(1) calc(150ms + 4 * 50ms) both;
   }
   .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-6 {
-    animation: stage-step 60ms steps(1) calc(1100ms + 5 * 60ms) both;
+    animation: stage-step 50ms steps(1) calc(150ms + 5 * 50ms) both;
+  }
+  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-7 {
+    animation: stage-step 50ms steps(1) calc(150ms + 6 * 50ms) both;
   }
 
   @keyframes stage-step {
@@ -689,12 +666,40 @@
   }
 
   .arcade-blink-start {
-    animation: blink-press 0.8s steps(1) infinite;
+    animation: blink-press 0.8s steps(2) infinite;
   }
 
   @keyframes blink-press {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0.15; }
+  }
+
+  /* Key art panel (16:7 with scanlines and faint grid) */
+  .card-key-art {
+    position: relative;
+    aspect-ratio: 16 / 7;
+    background-color: var(--color-art);
+    background-image:
+      linear-gradient(to right, rgba(237, 237, 232, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(237, 237, 232, 0.04) 1px, transparent 1px),
+      repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0, 0, 0, 0.25) 2px, rgba(0, 0, 0, 0.25) 3px);
+    background-size: 8px 8px, 8px 8px, 100% 3px;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Sprite idle wobble scaled 3x (2-frame steps(2)) */
+  @keyframes sprite-wobble {
+    0%, 100% { transform: scale(3) translateY(0); }
+    50% { transform: scale(3) translateY(-2px); }
+  }
+  .card-key-art .pixel-sprite {
+    image-rendering: pixelated;
+    animation: sprite-wobble 1s steps(2) infinite;
   }
 
   .boss-marker {
@@ -1121,8 +1126,7 @@
     .crosshair-wrap {
       display: none;
     }
-    .crt-power-on,
-    .arcade-boot-msg {
+    .crt-power-on {
       display: none !important;
     }
     .arcade-stage-content {
@@ -1134,7 +1138,8 @@
     .arcade-stagger-3,
     .arcade-stagger-4,
     .arcade-stagger-5,
-    .arcade-stagger-6 {
+    .arcade-stagger-6,
+    .arcade-stagger-7 {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
@@ -1145,7 +1150,7 @@
     .arcade-blink-start {
       animation: none !important;
     }
-    .arcade-cabinet .pixel-sprite {
+    .card-key-art .pixel-sprite {
       animation: none !important;
     }
   }

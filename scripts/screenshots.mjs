@@ -102,18 +102,18 @@ async function run() {
       await sleep(SETTLE_MS)
       await scrollToSection(page, 'work')
 
-      // c1) Cabinet at 2s after hovering row 01
+      // c1) Cabinet at 1s after hovering row 01
       const row1 = await page.locator(`${cfg.row}:nth-child(1)`).boundingBox()
       if (row1) {
         await page.mouse.move(row1.x + row1.width * 0.35, row1.y + row1.height / 2, { steps: 8 })
-        await sleep(2000)
+        await sleep(1000)
         await shot(page, vp, 'c-cabinet-boot')
 
-        // c2) Cabinet right after hopping to row 03 (glitch swap)
+        // c2) Cabinet at +400ms after hopping to row 03 (glitch swap)
         const row3 = await page.locator(`${cfg.row}:nth-child(3)`).boundingBox()
         if (row3) {
           await page.mouse.move(row3.x + row3.width * 0.35, row3.y + row3.height / 2, { steps: 5 })
-          await sleep(350)
+          await sleep(400)
           await shot(page, vp, 'c2-cabinet-hop')
         }
       }
@@ -138,7 +138,7 @@ async function run() {
 
       await context.close()
 
-      // e) Reduced motion: desktop capture of contact section
+      // e) Reduced motion captures: cabinet + contact section
       {
         const { context: rmContext, page: rmPage } = await newPage(browser, vp, {
           reducedMotion: 'reduce',
@@ -146,6 +146,13 @@ async function run() {
         await rmPage.goto(cfg.url, { waitUntil: 'load' })
         await rmPage.evaluate(() => document.fonts.ready)
         await sleep(400)
+        await scrollToSection(rmPage, 'work')
+        const rmRow1 = await rmPage.locator(`${cfg.row}:nth-child(1)`).boundingBox()
+        if (rmRow1) {
+          await rmPage.mouse.move(rmRow1.x + rmRow1.width * 0.35, rmRow1.y + rmRow1.height / 2)
+          await sleep(500)
+          await shot(rmPage, vp, 'e2-cabinet-reduced')
+        }
         await scrollToSection(rmPage, 'contact')
         await sleep(400)
         await shot(rmPage, vp, 'e-contact-reduced')
@@ -164,7 +171,7 @@ async function run() {
       await sleep(1600)
       await page.locator(`${cfg.row}:nth-child(1)`).tap()
       // Let mobile stage screen boot animation complete
-      await sleep(2200)
+      await sleep(1000)
       await shot(page, vp, 'd-expanded')
 
       // f) Mobile About section

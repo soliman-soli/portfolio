@@ -71,6 +71,16 @@ Plain-language rationale for every major choice made while rebuilding Soliman's 
 - **Choice:** Coordinate marker is scoped to the hero.
 - **Why:** Keeps cursor crosshair feedback and real-time HUD waypoint coordinates focused on the opening hero introduction without distracting from project examination in the work section or reading in about/contact sections. The marker transitions off in 150ms upon leaving the hero or scrolling past it.
 
+## 12. Cabinet Readability Floor
+
+- **Choice:** Cabinet readability floor (12px min, pixel font only for 2 labels).
+- **Why:** Solves previous miniature font and contrast issues by establishing a strict 12px floor for all informative text (JetBrains Mono / Archivo), reserving Press Start 2P strictly for "STAGE 01 / 04" and "▶ PRESS START". Replaced busy segmented bars with bold, scannable stat tiles.
+
+## 13. Animated Dithered Frame
+
+- **Choice:** Frame is a throttled canvas Bayer-dither, paused when hidden.
+- **Why:** Delivers a flowing organic halftone field surrounding the card using a native 8x8 Bayer matrix dither and cheap multi-sine noise rendered at low resolution (3.5px dots) and pixelated up. Throttled to ~14 fps and paused whenever the cabinet is hidden or in prefers-reduced-motion to guarantee <2ms CPU overhead and zero per-frame React reconciliations.
+
 ---
 
 ## Proposed Changes (Not Applied)
