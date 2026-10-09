@@ -1,11 +1,9 @@
 'use client'
 
-import { useRef } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
+import { useRef, useState } from 'react'
 import { projects, type Project } from '@/content/projects'
 import { WorkRow } from './WorkRow'
 import { FloatingPreview } from './FloatingPreview'
-import { PreviewCard } from './PreviewCard'
 import {
   PREVIEW_LERP,
   PREVIEW_OFFSET_X,
@@ -21,8 +19,12 @@ export function WorkSection() {
   const listRef = useRef<HTMLDivElement>(null)
   const pvRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
-  const cardRef = useRef<HTMLDivElement>(null)
-  const cardRootRef = useRef<Root | null>(null)
+
+  // Cabinet active state
+  const [activeProject, setActiveProject] = useState<Project | null>(null)
+  const [bootId, setBootId] = useState(0)
+  const [isGlitchHop, setIsGlitchHop] = useState(false)
+  const wasActiveRef = useRef(false)
 
   // Motion coordinates
   const motionRef = useRef({
@@ -34,10 +36,16 @@ export function WorkSection() {
   })
 
   const aim = (clientX: number, clientY: number) => {
-    const tx = Math.min(clientX + PREVIEW_OFFSET_X, window.innerWidth - PREVIEW_RIGHT_CLEARANCE)
+    const tx = Math.min(
+      clientX + PREVIEW_OFFSET_X,
+      window.innerWidth - PREVIEW_RIGHT_CLEARANCE
+    )
     const ty = Math.max(
       PREVIEW_TOP_MIN,
-      Math.min(clientY + PREVIEW_OFFSET_Y, window.innerHeight - PREVIEW_BOTTOM_CLEARANCE)
+      Math.min(
+        clientY + PREVIEW_OFFSET_Y,
+        window.innerHeight - PREVIEW_BOTTOM_CLEARANCE
+      )
     )
     motionRef.current.tx = tx
     motionRef.current.ty = ty
@@ -60,14 +68,15 @@ export function WorkSection() {
   const handlePointerEnter = (e: React.PointerEvent, project: Project) => {
     if (e.pointerType !== 'mouse') return
 
-    // Render PreviewCard inside cardRef using createRoot or simple state
-    if (cardRef.current) {
-      if (!cardRootRef.current) {
-        cardRootRef.current = createRoot(cardRef.current)
-      }
-      cardRootRef.current.render(<PreviewCard project={project} showArt={true} />)
+    if (!wasActiveRef.current) {
+      wasActiveRef.current = true
+      setBootId((b) => b + 1)
+      setIsGlitchHop(false)
+    } else {
+      setIsGlitchHop(true)
     }
 
+    setActiveProject(project)
     aim(e.clientX, e.clientY)
 
     const pv = pvRef.current
@@ -92,14 +101,70 @@ export function WorkSection() {
   }
 
   const handlePointerLeaveList = () => {
+    wasActiveRef.current = false
+    setActiveProject(null)
+    setIsGlitchHop(false)
+
     if (pvRef.current) {
       pvRef.current.classList.remove('is-on')
     }
     motionRef.current.running = false
   }
 
+  const handleRowFocus = (
+    e: React.FocusEvent<HTMLElement>,
+    project: Project
+  ) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    if (!wasActiveRef.current) {
+      wasActiveRef.current = true
+      setBootId((b) => b + 1)
+      setIsGlitchHop(false)
+    } else {
+      setIsGlitchHop(true)
+    }
+
+    setActiveProject(project)
+
+    // Position cabinet next to focused row
+    const tx = Math.min(
+      rect.left + Math.max(340, rect.width * 0.45),
+      window.innerWidth - PREVIEW_RIGHT_CLEARANCE
+    )
+    const ty = Math.max(
+      PREVIEW_TOP_MIN,
+      Math.min(
+        rect.top - 80,
+        window.innerHeight - PREVIEW_BOTTOM_CLEARANCE
+      )
+    )
+
+    motionRef.current.tx = tx
+    motionRef.current.ty = ty
+    motionRef.current.x = tx
+    motionRef.current.y = ty
+
+    if (pvRef.current) {
+      pvRef.current.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`
+      pvRef.current.classList.add('is-on')
+    }
+  }
+
+  const handleRowBlur = (e: React.FocusEvent<HTMLElement>) => {
+    // If next focused target is outside list, hide
+    if (
+      !listRef.current?.contains(e.relatedTarget as Node | null)
+    ) {
+      handlePointerLeaveList()
+    }
+  }
+
   return (
-    <section id="work" aria-labelledby="work-title" className="relative z-[2] p-[120px_40px_140px] narrow:p-[80px_20px_100px] border-t border-[var(--color-line)]">
+    <section
+      id="work"
+      aria-labelledby="work-title"
+      className="relative z-[2] p-[120px_40px_140px] narrow:p-[80px_20px_100px] border-t border-[var(--color-line)]"
+    >
       <div className="whead flex justify-between items-end gap-20 mb-56 narrow:flex-col narrow:items-start">
         <h2
           id="work-title"
@@ -130,6 +195,8 @@ export function WorkSection() {
             index={i}
             onPointerEnter={handlePointerEnter}
             onPointerMove={handlePointerMove}
+            onRowFocus={handleRowFocus}
+            onRowBlur={handleRowBlur}
           />
         ))}
       </div>
@@ -146,7 +213,13 @@ export function WorkSection() {
         </a>
       </div>
 
-      <FloatingPreview ref={pvRef} innerRef={innerRef} cardRef={cardRef} />
+      <FloatingPreview
+        ref={pvRef}
+        innerRef={innerRef}
+        activeProject={activeProject}
+        bootId={bootId}
+        isGlitchHop={isGlitchHop}
+      />
     </section>
   )
 }

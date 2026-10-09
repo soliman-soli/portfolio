@@ -131,10 +131,20 @@
     --corner-stroke: 1.5px;
     --row-cols: 56px 1fr 230px 70px 130px;
     --row-cols-narrow: 34px 1fr auto;
-    --preview-width: 300px;
+    --preview-width: 340px;
     --art-height: 150px;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+    /* arcade timings and glows */
+    --arcade-poweron: 180ms;
+    --arcade-coin: 620ms;
+    --arcade-ready: 300ms;
+    --arcade-boot-total: 1100ms;
+    --arcade-stagger: 60ms;
+    --arcade-glitch: 250ms;
+    --color-scanline: rgba(0, 0, 0, 0.35);
+    --color-neon-dim: rgba(204, 255, 46, 0.25);
   }
 }
 
@@ -490,7 +500,8 @@
     border-color: var(--color-neon);
     color: #000;
   }
-  .st.wip {
+  .st.wip,
+  .st.featured {
     border-color: var(--color-neon);
     color: var(--color-neon);
   }
@@ -529,115 +540,406 @@
     opacity: 1;
   }
   .preview-inner {
-    background: var(--color-card);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-card);
-    overflow: hidden;
-    transform: scale(0.92) rotate(-1.5deg);
+    overflow: visible;
+    transform: scale(0.94) rotate(-1deg);
     transition: transform var(--dur-preview-pop) var(--ease-reveal);
   }
   .preview.is-on .preview-inner {
     transform: none;
   }
 
-  /* ---------- preview art panels (pure CSS shapes) ---------- */
-  .art {
+  /* ---------- arcade cabinet ---------- */
+  .arcade-cabinet {
     position: relative;
-    height: var(--art-height);
+    width: var(--preview-width);
     background: var(--color-art);
-    border-bottom: 1px solid var(--color-line);
+    border: 2px solid var(--color-line);
+    border-radius: var(--radius-screen);
+    box-shadow: inset 0 0 0 1px var(--color-neon-dim), 0 16px 40px rgba(0, 0, 0, 0.7);
     overflow: hidden;
   }
-  .art i {
+
+  /* Scanlines overlay (arcade moments only) */
+  .arcade-cabinet::before {
+    content: '';
     position: absolute;
-    display: block;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      var(--color-scanline) 2px,
+      var(--color-scanline) 3px
+    );
+    border-radius: inherit;
   }
 
-  /* island: three stacked isometric tiles */
-  .art--island i {
-    left: 115px;
-    width: 70px;
-    height: 70px;
-    border: 1.5px solid var(--color-ink);
-    transform: rotateX(58deg) rotateZ(45deg);
+  /* Phosphor glow on pixel font inside cabinet */
+  .arcade-cabinet .font-pixel {
+    text-shadow: 0 0 8px var(--color-neon-ping), 0 0 16px rgba(204, 255, 46, 0.35);
   }
-  .art--island i:nth-child(1) {
-    top: 84px;
-    border-color: var(--color-mut);
+
+  /* CRT power on line & flash (0 to 180ms) */
+  .crt-power-on {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    background: #000;
+    pointer-events: none;
+    animation: crt-power 180ms cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
   }
-  .art--island i:nth-child(2) {
-    top: 62px;
-  }
-  .art--island i:nth-child(3) {
-    top: 40px;
+  .crt-power-on::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
     background: var(--color-neon);
-    border-color: var(--color-neon);
+    box-shadow: 0 0 12px var(--color-neon);
+    transform: translateY(-50%);
   }
 
-  /* video: screen, play triangle, progress bar */
-  .art--video i:nth-child(1) {
-    inset: 22px 36px 46px;
-    border: 1.5px solid var(--color-ink);
-    border-radius: var(--radius-screen);
-  }
-  .art--video i:nth-child(2) {
-    left: calc(50% - 12px);
-    top: 48px;
-    width: 26px;
-    height: 30px;
-    background: var(--color-neon);
-    clip-path: polygon(0 0, 100% 50%, 0 100%);
-  }
-  .art--video i:nth-child(3) {
-    left: 36px;
-    right: 36px;
-    bottom: 20px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--color-neon) 55%, var(--color-line) 55%);
+  @keyframes crt-power {
+    0% {
+      opacity: 1;
+      clip-path: inset(49.5% 100% 49.5% 100%);
+    }
+    40% {
+      opacity: 1;
+      clip-path: inset(49.5% 0% 49.5% 0%);
+    }
+    80% {
+      opacity: 1;
+      clip-path: inset(0% 0% 0% 0%);
+      filter: brightness(2);
+    }
+    100% {
+      opacity: 0;
+      clip-path: inset(0% 0% 0% 0%);
+      visibility: hidden;
+    }
   }
 
-  /* api: three response bars */
-  .art--api i {
-    left: 34px;
+  /* Arcade boot messages (INSERT COIN & PLAYER 1 READY) */
+  .arcade-boot-msg {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-art);
+    pointer-events: none;
+  }
+
+  .arcade-coin-msg {
+    animation: coin-blink 620ms steps(1) 180ms forwards;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  @keyframes coin-blink {
+    0%, 25% { opacity: 1; visibility: visible; }
+    26%, 50% { opacity: 0; visibility: visible; }
+    51%, 75% { opacity: 1; visibility: visible; }
+    76%, 100% { opacity: 0; visibility: hidden; }
+  }
+
+  .arcade-ready-msg {
+    animation: ready-flash 300ms steps(1) 800ms forwards;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  @keyframes ready-flash {
+    0%, 80% { opacity: 1; visibility: visible; }
+    81%, 100% { opacity: 0; visibility: hidden; }
+  }
+
+  /* Stage screen appearance */
+  .arcade-cabinet.is-boot .arcade-stage-content {
+    animation: stage-appear 10ms steps(1) 1100ms both;
+  }
+  .arcade-cabinet.is-boot .arcade-stage-content.skip-delay {
+    animation: none;
+    opacity: 1;
+  }
+
+  @keyframes stage-appear {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  /* Glitch hop swap (250ms) */
+  .arcade-cabinet.is-glitch {
+    animation: glitch-hop 250ms steps(2) forwards;
+  }
+
+  @keyframes glitch-hop {
+    0% { transform: translate(0, 0); filter: brightness(1); }
+    25% { transform: translate(-3px, 1px); filter: brightness(1.6); }
+    50% { transform: translate(3px, -1px); filter: brightness(0.8); }
+    75% { transform: translate(-1px, 0); filter: brightness(1.3); }
+    100% { transform: translate(0, 0); filter: brightness(1); }
+  }
+
+  /* Stepped stagger for stage lines */
+  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-1 {
+    animation: stage-step 60ms steps(1) calc(1100ms + 0 * 60ms) both;
+  }
+  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-2 {
+    animation: stage-step 60ms steps(1) calc(1100ms + 1 * 60ms) both;
+  }
+  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-3 {
+    animation: stage-step 60ms steps(1) calc(1100ms + 2 * 60ms) both;
+  }
+  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-4 {
+    animation: stage-step 60ms steps(1) calc(1100ms + 3 * 60ms) both;
+  }
+  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-5 {
+    animation: stage-step 60ms steps(1) calc(1100ms + 4 * 60ms) both;
+  }
+  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-6 {
+    animation: stage-step 60ms steps(1) calc(1100ms + 5 * 60ms) both;
+  }
+
+  @keyframes stage-step {
+    0% { opacity: 0; transform: translateY(2px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .arcade-blink-start {
+    animation: blink-press 0.8s steps(1) infinite;
+  }
+
+  @keyframes blink-press {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.15; }
+  }
+
+  .boss-marker {
+    display: inline-block;
+    width: 9px;
     height: 9px;
-    border-radius: var(--radius-track);
-    background: var(--color-line);
-  }
-  .art--api i:nth-child(1) {
-    top: 42px;
-    width: 62%;
-  }
-  .art--api i:nth-child(2) {
-    top: 70px;
-    width: 32%;
     background: var(--color-neon);
-  }
-  .art--api i:nth-child(3) {
-    top: 98px;
-    width: 50%;
+    clip-path: polygon(
+      20% 0%, 80% 0%,
+      100% 20%, 100% 60%,
+      80% 80%, 60% 80%, 60% 100%, 40% 100%, 40% 80%, 20% 80%,
+      0% 60%, 0% 20%
+    );
   }
 
-  /* gantt: three scheduled blocks */
-  .art--gantt i {
-    height: 14px;
-    border-radius: var(--radius-block);
+  /* Sprite idle wobble only inside cabinet */
+  @keyframes sprite-wobble {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+  .arcade-cabinet .pixel-sprite {
+    animation: sprite-wobble 1s steps(2) infinite;
+  }
+
+  /* ---------- pixel sprites (pure CSS shapes) ---------- */
+  .pixel-sprite {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 1. repos sprite: 3x3 grid into funnel into report */
+  .sprite-repos {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+  }
+  .repos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 8px);
+    grid-gap: 3px;
+  }
+  .repo-sq {
+    width: 8px;
+    height: 8px;
+    background: var(--color-ink);
+    opacity: 0.8;
+  }
+  .repo-sq:nth-child(3n) {
+    opacity: 0.4;
     background: var(--color-mut);
   }
-  .art--gantt i:nth-child(1) {
-    left: 34px;
-    top: 38px;
-    width: 90px;
-  }
-  .art--gantt i:nth-child(2) {
-    left: 124px;
-    top: 68px;
-    width: 120px;
+  .repo-sq:nth-child(5) {
     background: var(--color-neon);
+    opacity: 1;
+    box-shadow: 0 0 6px var(--color-neon);
   }
-  .art--gantt i:nth-child(3) {
-    left: 80px;
-    top: 98px;
-    width: 70px;
+  .repos-funnel {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .fn-bar {
+    width: 10px;
+    height: 2px;
+    background: var(--color-mut);
+  }
+  .fn-arrow {
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 6px solid var(--color-neon);
+  }
+  .repos-report {
+    width: 22px;
+    height: 30px;
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-art);
+    padding: 4px 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .rep-line {
+    height: 2px;
+    background: var(--color-mut);
+    width: 100%;
+  }
+  .rep-line.rep-head {
+    background: var(--color-neon);
+    width: 75%;
+    box-shadow: 0 0 4px var(--color-neon);
+  }
+
+  /* 2. vectors sprite: scattered plane with nearest-neighbor cluster */
+  .sprite-vectors {
+    position: relative;
+    width: 110px;
+    height: 44px;
+    border: 1px dashed var(--color-line);
+  }
+  .vec-dot {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--color-mut);
+  }
+  .vec-dot.d1 { left: 10px; top: 8px; }
+  .vec-dot.d2 { left: 22px; top: 28px; }
+  .vec-dot.d3 { left: 38px; top: 16px; }
+  .vec-dot.d4 { left: 86px; top: 6px; }
+  .vec-dot.d5 { left: 94px; top: 32px; }
+
+  .vec-cluster {
+    position: absolute;
+    left: 54px;
+    top: 12px;
+  }
+  .dot-target {
+    left: 8px;
+    top: 8px;
+    width: 6px;
+    height: 6px;
+    background: var(--color-neon);
+    box-shadow: 0 0 6px var(--color-neon);
+  }
+  .dot-nn.n1 { left: 0px; top: 2px; background: var(--color-ink); }
+  .dot-nn.n2 { left: 16px; top: 4px; background: var(--color-ink); }
+  .dot-nn.n3 { left: 6px; top: 16px; background: var(--color-ink); }
+  .cluster-radius {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    width: 24px;
+    height: 24px;
+    border: 1px dotted var(--color-neon);
+    border-radius: 50%;
+    opacity: 0.5;
+  }
+
+  /* 3. tenants sprite: three separated blocks with padlocks */
+  .sprite-tenants {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+  }
+  .tenant-box {
+    width: 28px;
+    height: 36px;
+    border: 1px solid var(--color-line);
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tenant-box.active {
+    border-color: var(--color-neon);
+    background: rgba(204, 255, 46, 0.05);
+  }
+  .padlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .padlock .shackle {
+    width: 8px;
+    height: 6px;
+    border: 1.5px solid var(--color-mut);
+    border-bottom: 0;
+    border-radius: 4px 4px 0 0;
+  }
+  .padlock .shackle.neon {
+    border-color: var(--color-neon);
+  }
+  .padlock .body {
+    width: 12px;
+    height: 9px;
+    background: var(--color-ink);
+    border-radius: 1px;
+  }
+  .padlock .body.neon {
+    background: var(--color-neon);
+    box-shadow: 0 0 6px var(--color-neon);
+  }
+
+  /* 4. bars sprite: 5-bar chart with deficit */
+  .sprite-bars {
+    position: relative;
+    width: 100px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 38px;
+  }
+  .chart-bar {
+    width: 12px;
+    background: var(--color-ink);
+    border-radius: 1px 1px 0 0;
+  }
+  .chart-bar.b1 { height: 24px; background: var(--color-mut); }
+  .chart-bar.b2 { height: 36px; }
+  .chart-bar.b3.deficit {
+    height: 12px;
+    background: var(--color-neon);
+    box-shadow: 0 0 6px var(--color-neon-ping);
+  }
+  .chart-bar.b4 { height: 30px; }
+  .chart-bar.b5 { height: 34px; }
+  .chart-axis {
+    width: 100%;
+    height: 2px;
+    background: var(--color-line);
+    margin-top: 2px;
   }
 
   /* card info container matching original .pi, .ph, .kv, .xp */
@@ -725,6 +1027,33 @@
     }
     .pulse-dot::before {
       animation: none;
+    }
+    .crt-power-on,
+    .arcade-boot-msg {
+      display: none !important;
+    }
+    .arcade-stage-content {
+      opacity: 1 !important;
+      animation: none !important;
+    }
+    .arcade-stagger-1,
+    .arcade-stagger-2,
+    .arcade-stagger-3,
+    .arcade-stagger-4,
+    .arcade-stagger-5,
+    .arcade-stagger-6 {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .arcade-cabinet.is-glitch {
+      animation: none !important;
+    }
+    .arcade-blink-start {
+      animation: none !important;
+    }
+    .arcade-cabinet .pixel-sprite {
+      animation: none !important;
     }
   }
 }

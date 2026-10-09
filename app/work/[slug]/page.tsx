@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getProject, projects } from '@/content/projects'
 import { StatusPill } from '@/components/ui/StatusPill'
-import { PreviewArt } from '@/components/work/PreviewArt'
+import { PixelSprite } from '@/components/work/PixelSprite'
 import { XpBar } from '@/components/ui/XpBar'
 
 export function generateStaticParams() {
@@ -30,51 +30,102 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       </nav>
 
       <article className="border border-[var(--color-line)] rounded-card overflow-hidden bg-[var(--color-card)]">
-        <PreviewArt art={project.art} className="!h-[240px]" />
+        {/* Pixel Sprite banner at top */}
+        <div className="h-[180px] bg-[var(--color-art)] border-b border-[var(--color-line)] flex items-center justify-center p-24">
+          <PixelSprite sprite={project.sprite} className="scale-125" />
+        </div>
 
-        <div className="p-32 flex flex-col gap-24">
-          <div className="flex justify-between items-baseline flex-wrap gap-12">
-            <div>
-              <span className="mono text-[var(--color-neon)] text-[14px] mr-12">
-                #{project.index}
-              </span>
-              <h1 className="inline font-[800] text-[36px] font-disp font-stretch-125 text-ink">
-                {project.title}
-              </h1>
-            </div>
-            <StatusPill status={project.status} label={project.statusLabel} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-16 border-y border-[var(--color-line)] py-16">
-            {project.stats.map((s) => (
-              <div key={s.label} className="mono flex flex-col gap-4">
-                <span className="text-mut text-[12px]">{s.label}</span>
-                <b className="font-normal text-ink text-[14px]">{s.value}</b>
+        <div className="p-32 flex flex-col gap-28">
+          {/* Header */}
+          <div className="flex flex-col gap-8">
+            <div className="flex justify-between items-baseline flex-wrap gap-12">
+              <div>
+                <span className="mono text-[var(--color-neon)] text-[14px] mr-12">
+                  #{project.index}
+                </span>
+                <h1 className="inline font-[800] text-[36px] narrow:text-[28px] font-disp font-stretch-125 text-ink">
+                  {project.title}
+                </h1>
               </div>
-            ))}
-            <div className="mono flex flex-col gap-4">
-              <span className="text-mut text-[12px]">stack</span>
-              <b className="font-normal text-ink text-[14px]">{project.tag}</b>
+              <StatusPill status={project.status} label={project.statusLabel} />
             </div>
-            <div className="mono flex flex-col gap-4">
-              <span className="text-mut text-[12px]">year</span>
-              <b className="font-normal text-ink text-[14px]">{project.year}</b>
+
+            {project.role && (
+              <span className="mono text-[13px] text-[var(--color-neon)]">
+                {project.role}
+              </span>
+            )}
+          </div>
+
+          {/* Summary */}
+          <p className="text-ink text-[16px] leading-relaxed m-0">
+            {project.summary}
+          </p>
+
+          {/* Highlights as a stat grid */}
+          <div className="border-y border-[var(--color-line)] py-20">
+            <span className="mono text-mut text-[11px] uppercase tracking-wider block mb-14">
+              key metrics &middot; highlights
+            </span>
+            <div className="grid grid-cols-3 narrow:grid-cols-1 gap-20">
+              {project.highlights.map((h) => (
+                <div key={h.label} className="flex flex-col gap-4">
+                  <span className="font-disp font-[800] text-[28px] text-[var(--color-neon)] leading-none font-stretch-125">
+                    {h.value}
+                  </span>
+                  <span className="mono text-mut text-[12px] leading-snug">
+                    {h.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div>
-            <div className="flex justify-between items-center mb-8 mono text-mut text-[12px]">
-              <span>mastery level</span>
-              <span className="text-[var(--color-neon)]">lv.0{project.level}</span>
-            </div>
-            <XpBar xp={project.xp} />
+          {/* Details list */}
+          <div className="flex flex-col gap-12">
+            <span className="mono text-mut text-[11px] uppercase tracking-wider">
+              mission briefing &middot; details
+            </span>
+            <ul className="flex flex-col gap-10 m-0 p-0 list-none">
+              {project.details.map((detail, idx) => (
+                <li key={idx} className="flex items-start gap-12 text-mut text-[14px] leading-relaxed">
+                  <span className="text-[var(--color-neon)] mono shrink-0">&gt;</span>
+                  <span>{detail}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="text-mut text-[14px] leading-relaxed mt-12">
-            <p>
-              Detailed case study coming soon. This placeholder page represents
-              the real project destination linked from the Selected Work list.
-            </p>
+          {/* Stack & Year */}
+          <div className="border-t border-[var(--color-line)] pt-20 flex flex-col gap-16">
+            <div className="flex justify-between items-start flex-wrap gap-12">
+              <div className="flex flex-col gap-8">
+                <span className="mono text-mut text-[12px]">tech stack</span>
+                <div className="flex flex-wrap gap-6">
+                  {project.stack.map((item) => (
+                    <span
+                      key={item}
+                      className="mono text-[12px] px-8 py-4 rounded-block bg-[var(--color-art)] border border-[var(--color-line)] text-ink"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-4">
+                <span className="mono text-mut text-[12px]">year</span>
+                <b className="mono text-ink text-[14px] font-normal">{project.year}</b>
+              </div>
+            </div>
+
+            {/* Mastery level */}
+            <div className="pt-8">
+              <div className="flex justify-between items-center mb-8 mono text-mut text-[12px]">
+                <span>mastery level</span>
+                <span className="text-[var(--color-neon)]">lv.0{project.level}</span>
+              </div>
+              <XpBar xp={project.xp} />
+            </div>
           </div>
         </div>
       </article>

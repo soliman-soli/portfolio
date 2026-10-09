@@ -1,30 +1,31 @@
 'use client'
 
 import { forwardRef } from 'react'
-
-export interface FloatingPreviewHandle {
-  setTarget: (x: number, y: number) => void
-  show: () => void
-  hide: () => void
-  setContent: (node: React.ReactNode) => void
-}
+import type { Project } from '@/content/projects'
+import { ArcadeCabinet } from './ArcadeCabinet'
 
 interface FloatingPreviewProps {
   innerRef: React.RefObject<HTMLDivElement | null>
-  cardRef: React.RefObject<HTMLDivElement | null>
+  activeProject: Project | null
+  bootId: number
+  isGlitchHop: boolean
 }
 
 export const FloatingPreview = forwardRef<HTMLDivElement, FloatingPreviewProps>(
-  function FloatingPreview({ innerRef, cardRef }, ref) {
+  function FloatingPreview(
+    { innerRef, activeProject, bootId, isGlitchHop },
+    ref
+  ) {
     return (
-      <div
-        ref={ref}
-        id="pv"
-        className="preview"
-        aria-hidden="true"
-      >
+      <div ref={ref} id="pv" className="preview" aria-hidden="true">
         <div ref={innerRef} className="preview-inner" id="pvin">
-          <div ref={cardRef} />
+          {activeProject && (
+            <ArcadeCabinet
+              key={`${activeProject.slug}:${bootId}`}
+              project={activeProject}
+              isGlitchHop={isGlitchHop}
+            />
+          )}
         </div>
       </div>
     )

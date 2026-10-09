@@ -1,16 +1,13 @@
-import type { ProjectArt } from '@/content/projects'
+import type { ProjectSprite } from '@/content/projects'
+import { PixelSprite } from './PixelSprite'
+
+export type ProjectArt = ProjectSprite
 
 interface PreviewArtProps {
-  art: ProjectArt
+  art: ProjectSprite
   className?: string
 }
 
 export function PreviewArt({ art, className = '' }: PreviewArtProps) {
-  return (
-    <div className={`art art--${art} ${className}`} aria-hidden="true">
-      <i />
-      <i />
-      <i />
-    </div>
-  )
+  return <PixelSprite sprite={art} className={className} />
 }

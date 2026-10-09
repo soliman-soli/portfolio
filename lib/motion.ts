@@ -48,12 +48,27 @@ export const PREVIEW_LERP = 0.16
 export const PREVIEW_OFFSET_X = 28
 /** Card sits this far above the cursor. */
 export const PREVIEW_OFFSET_Y = -90
-/** Keep the card at least this far from the right edge (300px card + 24px gap). */
-export const PREVIEW_RIGHT_CLEARANCE = 324
+/** Keep the card at least this far from the right edge (~340px card + 24px gap). */
+export const PREVIEW_RIGHT_CLEARANCE = 368
 /** Minimum distance from the top of the viewport. */
 export const PREVIEW_TOP_MIN = 12
 /** Keep the card's top at least this far above the bottom edge. */
-export const PREVIEW_BOTTOM_CLEARANCE = 300
+export const PREVIEW_BOTTOM_CLEARANCE = 440
+
+/* ---------- arcade cabinet ---------- */
+
+/** CRT power-on duration (0-180ms). */
+export const ARCADE_POWERON_MS = 180
+/** INSERT COIN blinking duration (180-800ms = 620ms). */
+export const ARCADE_COIN_MS = 620
+/** PLAYER 1 READY flash duration (800-1100ms = 300ms). */
+export const ARCADE_READY_MS = 300
+/** Total boot time until stage screen starts revealing. */
+export const ARCADE_BOOT_TOTAL_MS = 1100
+/** Stagger per stage screen line. */
+export const ARCADE_STAGGER_MS = 60
+/** Glitch hop swap duration when hopping between rows. */
+export const ARCADE_GLITCH_MS = 250
 
 /* ---------- work list ---------- */
 
