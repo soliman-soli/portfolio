@@ -20,8 +20,8 @@ export default function Home() {
 
       <main>
         <Hero onReplay={() => replayRef.current?.()} />
-        <WorkSection />
         <AboutSection />
+        <WorkSection />
         <ContactSection />
       </main>
     </>

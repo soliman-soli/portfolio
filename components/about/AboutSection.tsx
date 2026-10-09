@@ -1,4 +1,4 @@
-import { skillGroups, perks, quest } from '@/content/skills'
+import { skillGroups, perks } from '@/content/skills'
 import { XpBar } from '@/components/ui/XpBar'
 
 export function AboutSection() {
@@ -16,12 +16,12 @@ export function AboutSection() {
           About
         </h2>
         <p className="mono text-mut text-right narrow:text-left m-0">
-          character &middot; stats &middot; quest log
+          character &middot; stats &middot; perks
         </p>
       </div>
 
       {/* Two columns: Player card left, Skill tree right */}
-      <div className="grid grid-cols-[1fr_1.2fr] narrow:grid-cols-1 gap-40 items-start mb-64">
+      <div className="grid grid-cols-[1fr_1.2fr] narrow:grid-cols-1 gap-40 items-start">
         {/* Left: Player card */}
         <div className="border border-[var(--color-line)] rounded-card bg-[var(--color-card)] p-28 flex flex-col gap-20">
           <div className="flex justify-between items-baseline border-b border-[var(--color-line)] pb-14">
@@ -108,35 +108,6 @@ export function AboutSection() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quest log */}
-      <div className="quest-log border border-[var(--color-line)] rounded-card bg-[var(--color-card)] p-28">
-        <div className="flex justify-between items-baseline border-b border-[var(--color-line)] pb-14 mb-18 flex-wrap gap-12">
-          <div className="flex items-baseline gap-12 flex-wrap">
-            <span className="mono text-[var(--color-neon)] text-[12px] uppercase tracking-wider">
-              QUEST LOG
-            </span>
-            <h3 className="m-0 font-disp font-[800] text-[22px] text-ink font-stretch-125">
-              {quest.title}
-            </h3>
-            <span className="mono text-mut text-[13px]">@ {quest.where}</span>
-          </div>
-          <span className="mono text-mut text-[12px]">{quest.when}</span>
-        </div>
-        <p className="mono text-mut text-[12px] mb-24 m-0">{quest.context}</p>
-        <div className="grid grid-cols-4 narrow:grid-cols-2 gap-20">
-          {quest.results.map((r) => (
-            <div key={r.value} className="flex flex-col gap-6">
-              <span className="font-disp font-[800] text-[32px] text-[var(--color-neon)] leading-none font-stretch-125">
-                {r.value}
-              </span>
-              <span className="mono text-mut text-[12px] leading-snug">
-                {r.label}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
     </section>

@@ -164,6 +164,7 @@ export function WorkSection() {
       id="work"
       aria-labelledby="work-title"
       className="relative z-[2] p-[120px_40px_140px] narrow:p-[80px_20px_100px] border-t border-[var(--color-line)]"
+      onPointerLeave={handlePointerLeaveList}
     >
       <div className="whead flex justify-between items-end gap-20 mb-56 narrow:flex-col narrow:items-start">
         <h2
@@ -186,7 +187,6 @@ export function WorkSection() {
         ref={listRef}
         id="list"
         className="work-list border-t border-[var(--color-line)]"
-        onPointerLeave={handlePointerLeaveList}
       >
         {projects.map((p, i) => (
           <WorkRow
@@ -202,7 +202,7 @@ export function WorkSection() {
       </div>
 
       <div className="wfoot mono flex justify-between items-center mt-36 text-mut">
-        <span>every number on this page is a real result from my projects and internship</span>
+        <span>every number on this page is a real result from my projects</span>
         <a
           className="cta"
           href="https://github.com/soliman-ahmed"

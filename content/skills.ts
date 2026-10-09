@@ -9,16 +9,3 @@ export const skillGroups = [
 ] as const
 
 export const perks = ['Cross-functional Collaboration','Technical Documentation','Agile Teamwork','Problem Solving','Mentorship'] as const
-
-export const quest = {
-  title: 'Backend Engineering Intern',
-  where: 'In Time Dev',
-  when: 'Jul 2024 - Sep 2024',
-  context: 'B2B SaaS platform · 4-person engineering team · 3 enterprise clients',
-  results: [
-    { value: '-35%', label: 'API latency across 3 client-facing services (MySQL query-plan profiling, indexed lookups)' },
-    { value: '-25%', label: 'slow-query frequency (ORM refactor + composite indexes on 3 high-traffic tables)' },
-    { value: '2,000+', label: 'users covered by hardened auth: session-based RBAC, email verification, 4 endpoint vulnerabilities fixed' },
-    { value: '8 / 8', label: 'planned features shipped on schedule in 3 months, with no post-launch rollback' },
-  ],
-} as const

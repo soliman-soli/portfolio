@@ -55,7 +55,7 @@ export const PREVIEW_BAND_TOUCH = 14
 /** Viewport vertical margin padding around the card and frame (px). */
 export const PREVIEW_VIEWPORT_PADDING = 16
 
-/* ---------- animated dithered frame ---------- */
+/* ---------- animated dithered frame & water ripple ---------- */
 
 /** Frame rate for the Bayer dither noise animation (~12-15 fps). */
 export const DITHER_FPS = 14
@@ -67,6 +67,27 @@ export const DITHER_DOT_SIZE = 3.5
 export const DITHER_HOP_BOOST_MS = 200
 /** Row hop field value boost (+0.2). */
 export const DITHER_HOP_BOOST = 0.2
+
+/** Damping factor for 2D wave simulation (~0.965; ripples live ~1-1.5s). */
+export const WAVE_DAMPING = 0.965
+/** Multiplier converting pointer movement distance (px) into wave height. */
+export const WAVE_K = 0.035
+/** Maximum height injected per pointer movement event. */
+export const WAVE_MAX = 0.8
+/** Multiplier for click/tap pointerdown burst drop. */
+export const WAVE_BURST_MULT = 2.5
+/** Gain applied when adding wave height into the field before Bayer threshold. */
+export const WAVE_GAIN = 0.42
+/** Frame rate while ripples are active (~30 fps). */
+export const WAVE_FPS_ACTIVE = 30
+/** Frame rate when ripples are idle (~12-15 fps). */
+export const WAVE_FPS_IDLE = 14
+/** Radius (in dot cells) of energy injection footprint. */
+export const WAVE_FOOTPRINT_RADIUS = 2
+/** Margin (px) outside canvas bounding rect before ignoring pointer. */
+export const WAVE_MARGIN_PX = 24
+/** Activity threshold below which simulation drops back to idle fps. */
+export const WAVE_ACTIVITY_THRESHOLD = 0.003
 
 /* ---------- arcade cabinet boot sequence ---------- */
 

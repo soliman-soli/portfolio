@@ -78,13 +78,14 @@ async function run() {
       await context.close()
     }
 
-    // b) Hero revealed
+    // b) Hero revealed & full page order
     {
       const { context, page } = await newPage(browser, vp)
       await page.goto(cfg.url, { waitUntil: 'load' })
       await page.evaluate(() => document.fonts.ready)
       await sleep(SETTLE_MS)
       await shot(page, vp, 'b-hero')
+      await page.screenshot({ path: path.join(cfg.out, `${vp.name}-order-fullpage.png`), fullPage: true })
 
       if (!vp.mobile) {
         await page.mouse.move(900, 500)
@@ -110,6 +111,16 @@ async function run() {
         await sleep(1000)
         await shot(page, vp, 'c-cabinet-boot')
 
+        // c-ripple) Move pointer near cabinet frame to produce water ripples
+        const pv = await page.locator('#pv').boundingBox()
+        if (pv) {
+          await page.mouse.move(pv.x - 16, pv.y + 60)
+          await page.mouse.move(pv.x, pv.y + 120, { steps: 8 })
+          await page.mouse.move(pv.x + 18, pv.y + 180, { steps: 8 })
+          await sleep(300)
+          await shot(page, vp, 'c-cabinet-ripple')
+        }
+
         // c2) Cabinet at +400ms after hopping to row 03 (glitch swap)
         const row3 = await page.locator(`${cfg.row}:nth-child(3)`).boundingBox()
         if (row3) {
@@ -119,7 +130,7 @@ async function run() {
         }
       }
 
-      // f) About section
+      // f) About section (without quest card)
       await scrollToSection(page, 'about')
       await sleep(800)
       await shot(page, vp, 'f-about')
@@ -146,6 +157,17 @@ async function run() {
         await projPage.evaluate(() => document.fonts.ready)
         await sleep(800)
         await shot(projPage, vp, 'h-project-desktop')
+
+        // Move pointer across the green dithered frame band with steps at +300ms
+        const article = await projPage.locator('article').boundingBox()
+        if (article) {
+          await projPage.mouse.move(article.x - 20, article.y + 80)
+          await projPage.mouse.move(article.x - 6, article.y + 140, { steps: 8 })
+          await projPage.mouse.move(article.x + 16, article.y + 200, { steps: 8 })
+          await sleep(300)
+          await shot(projPage, vp, 'h2-project-ripple')
+        }
+
         await projContext.close()
       }
 

@@ -35,11 +35,11 @@ export function Hero({ onReplay }: HeroProps) {
           S<i className="text-[var(--color-neon)] not-italic">/</i>
         </Link>
         <div className="links mono flex gap-28 narrow:hidden justify-center">
-          <a href="#work" className="nav-link">
-            work
-          </a>
           <a href="#about" className="nav-link">
             about
+          </a>
+          <a href="#work" className="nav-link">
+            work
           </a>
           <a href="#contact" className="nav-link">
             contact

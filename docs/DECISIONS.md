@@ -91,6 +91,16 @@ Plain-language rationale for every major choice made while rebuilding Soliman's 
 - **Choice:** DitherFrame is one shared canvas component used by the cabinet and the project page.
 - **Why:** Centralizes the 8x8 Bayer matrix dither rendering, dynamic resolution capping (max 200x260 dots), and intersection/visibility observer management into `@/components/ui/DitherFrame`, ensuring identical aesthetics and zero code duplication across the site.
 
+## 16. Water Ripple Interaction on Dither Frames
+
+- **Choice:** Dither frame reacts to the pointer through a small wave simulation (height field + damping) added to the field before the Bayer threshold; driven by global pointer position because the canvas is pointer-events: none.
+- **Why:** Simulates water-like ripples across the pixel dots on pointer movement or taps without requiring full-screen canvas redraws or heavy 3D/physics dependencies. Reuses two Float32Array buffers at the native dot resolution, scales frame rate dynamically between ~14 fps idle and ~30 fps active, and halts completely under prefers-reduced-motion.
+
+## 17. Section Sequence
+
+- **Choice:** Section order is hero, about, work, contact.
+- **Why:** Introduces Soliman's profile, qualifications, and core technical skills immediately following the hero introduction before diving into specific project case studies and the arcade contact terminal.
+
 ---
 
 ## Proposed Changes (Not Applied)

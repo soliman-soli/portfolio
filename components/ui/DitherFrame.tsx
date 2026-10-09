@@ -2,10 +2,19 @@
 
 import { useEffect, useRef } from 'react'
 import {
-  DITHER_FPS,
   DITHER_SPEED,
   DITHER_HOP_BOOST_MS,
   DITHER_HOP_BOOST,
+  WAVE_DAMPING,
+  WAVE_K,
+  WAVE_MAX,
+  WAVE_BURST_MULT,
+  WAVE_GAIN,
+  WAVE_FPS_ACTIVE,
+  WAVE_FPS_IDLE,
+  WAVE_FOOTPRINT_RADIUS,
+  WAVE_MARGIN_PX,
+  WAVE_ACTIVITY_THRESHOLD,
 } from '@/lib/motion'
 
 interface DitherFrameProps {
@@ -13,6 +22,7 @@ interface DitherFrameProps {
   dot?: number
   isActive?: boolean
   isGlitchHop?: boolean
+  resetKey?: string | number | null
   className?: string
   children?: React.ReactNode
 }
@@ -34,12 +44,14 @@ export function DitherFrame({
   dot: dotProp,
   isActive = true,
   isGlitchHop = false,
+  resetKey,
   className = '',
   children,
 }: DitherFrameProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const hopTimeRef = useRef<number>(0)
+  const prevResetKeyRef = useRef<string | number | null>(resetKey)
 
   const stateRef = useRef<{
     rafId: number
@@ -56,6 +68,14 @@ export function DitherFrame({
     neonB: number
     isIntersecting: boolean
     isDocVisible: boolean
+    hCur: Float32Array | null
+    hPrev: Float32Array | null
+    waveActivity: number
+    cachedRect: DOMRect | null
+    lastPointerX: number
+    lastPointerY: number
+    lastPointerTime: number
+    lastRectTime: number
   }>({
     rafId: 0,
     lastTime: 0,
@@ -71,14 +91,40 @@ export function DitherFrame({
     neonB: 46,
     isIntersecting: true,
     isDocVisible: true,
+    hCur: null,
+    hPrev: null,
+    waveActivity: 0,
+    cachedRect: null,
+    lastPointerX: -9999,
+    lastPointerY: -9999,
+    lastPointerTime: 0,
+    lastRectTime: 0,
   })
 
-  // Track glitch hop for momentary brightness boost
+  // Track glitch hop for momentary brightness boost & clear ripple buffers
   useEffect(() => {
     if (isGlitchHop) {
       hopTimeRef.current = performance.now()
+      const state = stateRef.current
+      if (state.hCur) state.hCur.fill(0)
+      if (state.hPrev) state.hPrev.fill(0)
+      state.waveActivity = 0
     }
   }, [isGlitchHop])
+
+  // Clear ripple buffers on row change (resetKey) or when turned off
+  useEffect(() => {
+    if (resetKey !== prevResetKeyRef.current || !isActive) {
+      prevResetKeyRef.current = resetKey
+      const state = stateRef.current
+      if (state.hCur) state.hCur.fill(0)
+      if (state.hPrev) state.hPrev.fill(0)
+      state.waveActivity = 0
+      if (canvasRef.current) {
+        state.cachedRect = canvasRef.current.getBoundingClientRect()
+      }
+    }
+  }, [resetKey, isActive])
 
   useEffect(() => {
     const wrapper = wrapperRef.current
@@ -99,6 +145,13 @@ export function DitherFrame({
         state.neonR = parseInt(hex.slice(0, 2), 16)
         state.neonG = parseInt(hex.slice(2, 4), 16)
         state.neonB = parseInt(hex.slice(4, 6), 16)
+      }
+    }
+
+    const updateRect = () => {
+      if (canvas) {
+        state.cachedRect = canvas.getBoundingClientRect()
+        state.lastRectTime = performance.now()
       }
     }
 
@@ -136,19 +189,109 @@ export function DitherFrame({
         state.cols = cols
         state.rows = rows
         state.imageData = ctx.createImageData(cols, rows)
+
+        // Allocate wave simulation Float32 buffers only on resize
+        const totalCells = cols * rows
+        state.hCur = new Float32Array(totalCells)
+        state.hPrev = new Float32Array(totalCells)
+        state.waveActivity = 0
       }
 
       canvas.style.width = `${totalW}px`
       canvas.style.height = `${totalH}px`
       canvas.style.top = `-${effectiveBand}px`
       canvas.style.left = `-${effectiveBand}px`
+
+      updateRect()
     }
 
     updateSize()
 
+    // Helper: inject energy into current height buffer
+    const injectEnergy = (col: number, row: number, energy: number) => {
+      const { cols, rows, hCur } = state
+      if (!hCur || cols <= 0 || rows <= 0 || energy <= 0) return
+
+      const radius = WAVE_FOOTPRINT_RADIUS
+      for (let dr = -radius; dr <= radius; dr++) {
+        const r = row + dr
+        if (r < 1 || r >= rows - 1) continue
+        const rowOffset = r * cols
+
+        for (let dc = -radius; dc <= radius; dc++) {
+          const c = col + dc
+          if (c < 1 || c >= cols - 1) continue
+
+          const distSq = dr * dr + dc * dc
+          if (distSq <= radius * radius) {
+            const weight = 1 - Math.sqrt(distSq) / (radius + 0.6)
+            hCur[rowOffset + c] += energy * weight
+          }
+        }
+      }
+      state.waveActivity = 1
+    }
+
+    const isReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+
+    // Step the 2D wave equation simulation
+    const stepWaveSimulation = () => {
+      const { cols, rows, hCur, hPrev } = state
+      if (!hCur || !hPrev || cols <= 2 || rows <= 2 || state.waveActivity <= 0) {
+        return
+      }
+
+      let maxH = 0
+      for (let r = 1; r < rows - 1; r++) {
+        const rowOffset = r * cols
+        for (let c = 1; c < cols - 1; c++) {
+          const i = rowOffset + c
+          const next =
+            ((hCur[i - 1] + hCur[i + 1] + hCur[i - cols] + hCur[i + cols]) * 0.5 -
+              hPrev[i]) *
+            WAVE_DAMPING
+          hPrev[i] = next
+          const absH = Math.abs(next)
+          if (absH > maxH) {
+            maxH = absH
+          }
+        }
+      }
+
+      // Swap buffers: hPrev becomes the new current buffer
+      state.hCur = hPrev
+      state.hPrev = hCur
+
+      if (maxH < WAVE_ACTIVITY_THRESHOLD) {
+        state.waveActivity = 0
+        state.hCur.fill(0)
+        state.hPrev.fill(0)
+      } else {
+        state.waveActivity = maxH
+      }
+    }
+
     const renderFrame = (now: number) => {
-      const { cols, rows, cardW, cardH, band, dot, imageData, neonR, neonG, neonB } = state
+      const {
+        cols,
+        rows,
+        cardW,
+        cardH,
+        band,
+        dot,
+        imageData,
+        neonR,
+        neonG,
+        neonB,
+        hCur,
+      } = state
       if (!imageData || cols <= 0 || rows <= 0) return
+
+      if (!isReducedMotion) {
+        stepWaveSimulation()
+      }
 
       const data = imageData.data
       const t = now * DITHER_SPEED
@@ -164,6 +307,7 @@ export function DitherFrame({
       for (let r = 0; r < rows; r++) {
         const y = (r + 0.5) * dot
         const dy = Math.max(0, band - y, y - (band + cardH))
+        const rowOffset = r * cols
 
         for (let c = 0; c < cols; c++) {
           const x = (c + 0.5) * dot
@@ -188,6 +332,9 @@ export function DitherFrame({
           // Falloff: 1 at card boundary down to 0 at outer band edge
           const falloff = 1 - dist / band
 
+          // Wave height h added before Bayer threshold
+          const h = !isReducedMotion && hCur ? hCur[rowOffset + c] : 0
+
           // Animated organic noise: sum of sines + time
           const noise =
             0.5 +
@@ -196,7 +343,7 @@ export function DitherFrame({
             0.16 * Math.sin((c + r) * 0.045 + t * 0.7) +
             boost
 
-          const v = Math.min(1, Math.max(0, noise * falloff))
+          const v = Math.min(1, Math.max(0, (noise + h * WAVE_GAIN) * falloff))
           const bayer = BAYER_8[(r & 7) * 8 + (c & 7)]
 
           // Three tones: solid neon, dim green, transparent
@@ -221,16 +368,10 @@ export function DitherFrame({
       ctx.putImageData(imageData, 0, 0)
     }
 
-    const isReducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches
-
     if (isReducedMotion) {
       renderFrame(0)
       return
     }
-
-    const interval = 1000 / DITHER_FPS
 
     const tick = (now: number) => {
       const shouldRun =
@@ -243,6 +384,9 @@ export function DitherFrame({
         state.rafId = 0
         return
       }
+
+      const activeFps = state.waveActivity > 0 ? WAVE_FPS_ACTIVE : WAVE_FPS_IDLE
+      const interval = 1000 / activeFps
 
       if (now - state.lastTime >= interval) {
         state.lastTime = now
@@ -267,6 +411,92 @@ export function DitherFrame({
         state.rafId = 0
       }
     }
+
+    // Pointer events on window while active
+    const handlePointerMove = (e: PointerEvent) => {
+      const now = performance.now()
+      const rect = state.cachedRect
+      if (!rect) return
+
+      // Throttled rect refresh if element moved via transform
+      if (now - state.lastRectTime > 150) {
+        updateRect()
+      }
+
+      const clientX = e.clientX
+      const clientY = e.clientY
+
+      // Ignore if outside canvas rect + margin
+      if (
+        clientX < rect.left - WAVE_MARGIN_PX ||
+        clientX > rect.right + WAVE_MARGIN_PX ||
+        clientY < rect.top - WAVE_MARGIN_PX ||
+        clientY > rect.bottom + WAVE_MARGIN_PX
+      ) {
+        state.lastPointerX = clientX
+        state.lastPointerY = clientY
+        state.lastPointerTime = now
+        return
+      }
+
+      const dx = clientX - state.lastPointerX
+      const dy = clientY - state.lastPointerY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      state.lastPointerX = clientX
+      state.lastPointerY = clientY
+
+      if (state.lastPointerTime === 0 || now - state.lastPointerTime > 250) {
+        state.lastPointerTime = now
+        return
+      }
+      state.lastPointerTime = now
+
+      const energy = Math.min(WAVE_MAX, Math.max(0, dist * WAVE_K))
+      if (energy <= 0.008) return
+
+      const canvasX = clientX - rect.left
+      const canvasY = clientY - rect.top
+      const col = Math.floor(canvasX / state.dot)
+      const row = Math.floor(canvasY / state.dot)
+
+      injectEnergy(col, row, energy)
+    }
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const rect = state.cachedRect
+      if (!rect) return
+
+      const clientX = e.clientX
+      const clientY = e.clientY
+
+      if (
+        clientX < rect.left - WAVE_MARGIN_PX ||
+        clientX > rect.right + WAVE_MARGIN_PX ||
+        clientY < rect.top - WAVE_MARGIN_PX ||
+        clientY > rect.bottom + WAVE_MARGIN_PX
+      ) {
+        return
+      }
+
+      const canvasX = clientX - rect.left
+      const canvasY = clientY - rect.top
+      const col = Math.floor(canvasX / state.dot)
+      const row = Math.floor(canvasY / state.dot)
+
+      injectEnergy(col, row, WAVE_MAX * WAVE_BURST_MULT)
+    }
+
+    if (isActive && !isReducedMotion) {
+      window.addEventListener('pointermove', handlePointerMove, { passive: true })
+      window.addEventListener('pointerdown', handlePointerDown, { passive: true })
+    }
+
+    // Window scroll & resize: update cached rect without layout reads in rAF
+    const handleWindowChange = () => {
+      updateRect()
+    }
+    window.addEventListener('scroll', handleWindowChange, { passive: true })
+    window.addEventListener('resize', handleWindowChange, { passive: true })
 
     // Observer: only run loop when card is on screen
     const io = new IntersectionObserver(([entry]) => {
@@ -297,6 +527,10 @@ export function DitherFrame({
       io.disconnect()
       ro.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerdown', handlePointerDown)
+      window.removeEventListener('scroll', handleWindowChange)
+      window.removeEventListener('resize', handleWindowChange)
       if (state.rafId) {
         cancelAnimationFrame(state.rafId)
         state.rafId = 0

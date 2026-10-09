@@ -25,6 +25,7 @@ export const FloatingPreview = forwardRef<HTMLDivElement, FloatingPreviewProps>(
           <DitherFrame
             isActive={isVisible}
             isGlitchHop={isGlitchHop}
+            resetKey={activeProject?.slug ?? null}
           >
             {activeProject && (
               <ArcadeCabinet
