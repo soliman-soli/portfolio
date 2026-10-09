@@ -111,6 +111,16 @@ Plain-language rationale for every major choice made while rebuilding Soliman's 
 - **Choice:** Console is not in the nav; it sits between About and Work.
 - **Why:** Serves as an interactive exploratory playground directly connecting Soliman's background overview with the deep case study project list, without cluttering the primary header navigation.
 
+## 20. Clean Work List Without Hover Preview
+
+- **Choice:** No hover preview: the list is clean, the click is the moment.
+- **Why:** Eliminates visual clutter, heavy cursor-following motion loops, and viewport clipping on medium screens. Instead, hovering a row subtly illuminates its title, draws a neon underline sweep, and blinks a retro pixel `▶` cursor, keeping the focus entirely on the typography until an intentional click triggers the arcade stage start transition.
+
+## 21. Arcade Stage-Start Transition
+
+- **Choice:** Stage transition = one persistent overlay in the root layout, dithered radial wipe sharing lib/dither.ts with DitherFrame, always has a 4s fail-safe, skipped for modified clicks, back navigation and reduced motion.
+- **Why:** Delivers an arcade game "mission briefing / stage load" aesthetic while maintaining instant perceived performance. Route prefetching and `router.push()` occur in parallel with the 450ms cover animation, the 10-segment XP bar dynamically fills during the hold phase, and the overlay contracts away cleanly once the target route is mounted. Modified clicks (cmd/ctrl/shift/middle-click) and reduced motion preferences bypass the overlay completely to preserve native browser UX.
+
 ---
 
 ## Proposed Changes (Not Applied)

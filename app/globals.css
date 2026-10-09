@@ -110,8 +110,6 @@
     --dur-row-underline: 0.6s;
     --dur-row-title: 0.5s;
     --dur-row-idx: 0.25s;
-    --dur-preview-fade: 0.25s;
-    --dur-preview-pop: 0.45s;
 
     /* motion: distances */
     --rise-letter: 112%;
@@ -127,17 +125,17 @@
     --corner-stroke: 1.5px;
     --row-cols: 56px 1fr auto;
     --row-cols-narrow: 34px 1fr auto;
-    --preview-width: clamp(440px, 34vw, 520px);
-    --preview-right-inset: 40px;
     --art-height: 150px;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 
+    /* stage transition tokens */
+    --dur-stage-cover: 450ms;
+    --dur-stage-hold-min: 500ms;
+    --dur-stage-reveal: 450ms;
+    --z-stage-transition: 9999;
+
     /* arcade timings and glows */
-    --arcade-poweron: 150ms;
-    --arcade-stagger: 50ms;
-    --arcade-glitch: 200ms;
-    --arcade-boot-total: 450ms;
     --color-scanline: rgba(0, 0, 0, 0.35);
     --color-neon-dim: rgba(204, 255, 46, 0.25);
     --dur-console-flash: 200ms;
@@ -448,12 +446,42 @@
   }
 
   .row-idx {
+    position: relative;
     color: var(--color-mut);
     transition: color var(--dur-row-idx);
+  }
+  .row-idx::before {
+    content: "▶";
+    position: absolute;
+    right: calc(100% + 6px);
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    line-height: 1;
+    color: var(--color-neon);
+    opacity: 0;
+    pointer-events: none;
   }
   .work-row:hover .row-idx,
   .work-row:focus-visible .row-idx {
     color: var(--color-neon);
+  }
+  .work-row:hover .row-idx::before,
+  .work-row:focus-visible .row-idx::before {
+    opacity: 1;
+    animation: blink-row-marker 0.6s steps(2) infinite;
+  }
+  @keyframes blink-row-marker {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .work-row:hover .row-idx::before,
+    .work-row:focus-visible .row-idx::before {
+      animation: none;
+      opacity: 1;
+    }
   }
 
   .row-title {
@@ -488,13 +516,19 @@
     color: var(--color-mut);
   }
 
-  /* inline details, only ever shown on touch devices */
-  .row-more {
+  .work-hint-touch {
     display: none;
-    grid-column: 1 / -1;
-    flex-direction: column;
-    gap: 6px;
-    color: var(--color-mut);
+  }
+  .work-hint-hover {
+    display: inline;
+  }
+  @media (hover: none) {
+    .work-hint-touch {
+      display: inline;
+    }
+    .work-hint-hover {
+      display: none;
+    }
   }
 
   @media (max-width: 760px) {
@@ -503,205 +537,38 @@
     }
   }
 
-  /* ---------- floating preview (docked right) ---------- */
-  .preview {
-    position: fixed;
-    right: var(--preview-right-inset);
-    top: 0;
-    width: var(--preview-width);
-    pointer-events: none;
-    z-index: 7;
-    opacity: 0;
-    transition: opacity var(--dur-preview-fade);
+  /* ---------- arcade stage start transition ---------- */
+  .stage-loading-card {
+    animation: stage-card-in 150ms steps(3) forwards;
   }
-  .preview.is-on {
-    opacity: 1;
+  .stage-loading-card.is-exit {
+    animation: stage-card-out 150ms steps(3) forwards;
   }
-  .preview-inner {
-    position: relative;
-    overflow: visible;
-    transform: scale(0.96);
-    transition: transform var(--dur-preview-pop) var(--ease-reveal);
+  @keyframes stage-card-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
-  .preview.is-on .preview-inner {
-    transform: none;
+  @keyframes stage-card-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
   }
 
-  /* Responsive clamp adjustments for 760-1100px viewports */
-  @media (min-width: 760px) and (max-width: 1100px) {
-    :root {
-      --preview-width: clamp(400px, 34vw, 520px);
-    }
-  }
-
-  /* ---------- arcade cabinet ---------- */
-  .arcade-cabinet {
-    position: relative;
-    width: var(--preview-width);
-    background: var(--color-card);
-    border: 2px solid var(--color-neon);
-    border-radius: var(--radius-screen);
-    box-shadow: inset 0 0 0 1px var(--color-neon-dim), 0 20px 50px rgba(0, 0, 0, 0.85);
-    overflow: hidden;
-    z-index: 1;
-  }
-  .arcade-cabinet.is-touch {
-    width: 100%;
-  }
-
-  /* Scanlines overlay (arcade moments only) */
-  .arcade-cabinet::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 8;
-    background: repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 2px,
-      var(--color-scanline) 2px,
-      var(--color-scanline) 3px
-    );
-    border-radius: inherit;
-  }
-
-  /* Phosphor glow on pixel font inside cabinet */
-  .arcade-cabinet .font-pixel {
-    text-shadow: 0 0 8px rgba(204, 255, 46, 0.6), 0 0 16px rgba(204, 255, 46, 0.35);
-  }
-
-  /* CRT power on line & flash (0 to 150ms) */
-  .crt-power-on {
-    position: absolute;
-    inset: 0;
-    z-index: 9;
-    background: #000;
-    pointer-events: none;
-    animation: crt-power 150ms cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
-  }
-  .crt-power-on::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--color-neon);
-    box-shadow: 0 0 12px var(--color-neon);
-    transform: translateY(-50%);
-  }
-
-  @keyframes crt-power {
-    0% {
-      opacity: 1;
-      clip-path: inset(49.5% 100% 49.5% 100%);
-    }
-    40% {
-      opacity: 1;
-      clip-path: inset(49.5% 0% 49.5% 0%);
-    }
-    80% {
-      opacity: 1;
-      clip-path: inset(0% 0% 0% 0%);
-      filter: brightness(2);
-    }
-    100% {
-      opacity: 0;
-      clip-path: inset(0% 0% 0% 0%);
-      visibility: hidden;
-    }
-  }
-
-  /* Stage screen appearance (150ms) */
-  .arcade-cabinet.is-boot .arcade-stage-content {
-    animation: stage-appear 10ms steps(1) 150ms both;
-  }
-  .arcade-cabinet.is-boot .arcade-stage-content.skip-delay {
-    animation: none;
-    opacity: 1;
-  }
-
-  @keyframes stage-appear {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-
-  /* Glitch hop swap (200ms) */
-  .arcade-cabinet.is-glitch {
-    animation: glitch-hop 200ms steps(2) forwards;
-  }
-
-  @keyframes glitch-hop {
-    0% { transform: translate(0, 0); filter: brightness(1); }
-    33% { transform: translate(-3px, 1px); filter: brightness(1.6); }
-    66% { transform: translate(2px, -1px); filter: brightness(0.9); }
-    100% { transform: translate(0, 0); filter: brightness(1); }
-  }
-
-  /* Stepped stagger for stage lines (50ms per block) */
-  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-1 {
-    animation: stage-step 50ms steps(1) calc(150ms + 0 * 50ms) both;
-  }
-  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-2 {
-    animation: stage-step 50ms steps(1) calc(150ms + 1 * 50ms) both;
-  }
-  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-3 {
-    animation: stage-step 50ms steps(1) calc(150ms + 2 * 50ms) both;
-  }
-  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-4 {
-    animation: stage-step 50ms steps(1) calc(150ms + 3 * 50ms) both;
-  }
-  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-5 {
-    animation: stage-step 50ms steps(1) calc(150ms + 4 * 50ms) both;
-  }
-  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-6 {
-    animation: stage-step 50ms steps(1) calc(150ms + 5 * 50ms) both;
-  }
-  .arcade-cabinet.is-boot:not(.is-glitch) .arcade-stagger-7 {
-    animation: stage-step 50ms steps(1) calc(150ms + 6 * 50ms) both;
-  }
-
-  @keyframes stage-step {
-    0% { opacity: 0; transform: translateY(2px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-
-  .arcade-blink-start {
-    animation: blink-press 0.8s steps(2) infinite;
-  }
-
-  @keyframes blink-press {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0.15; }
-  }
-
-  /* Key art panel (16:7 with scanlines and faint grid) */
-  .card-key-art {
-    position: relative;
-    aspect-ratio: 16 / 7;
-    background-color: var(--color-art);
-    background-image:
-      linear-gradient(to right, rgba(237, 237, 232, 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(237, 237, 232, 0.04) 1px, transparent 1px),
-      repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0, 0, 0, 0.25) 2px, rgba(0, 0, 0, 0.25) 3px);
-    background-size: 8px 8px, 8px 8px, 100% 3px;
-    border: 1px solid var(--color-line);
-    border-radius: 6px;
-    overflow: hidden;
+  .stage-xp-bar {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 3px;
+    width: 100%;
+    height: 5px;
   }
-
-  /* Sprite idle wobble scaled 3x (2-frame steps(2)) */
-  @keyframes sprite-wobble {
-    0%, 100% { transform: scale(3) translateY(0); }
-    50% { transform: scale(3) translateY(-2px); }
+  .stage-xp-seg {
+    flex: 1;
+    height: 5px;
+    border-radius: 2px;
+    background: var(--color-line);
+    transition: background-color 0s;
   }
-  .card-key-art .pixel-sprite {
-    image-rendering: pixelated;
-    animation: sprite-wobble 1s steps(2) infinite;
+  .stage-xp-seg.is-filled {
+    background: var(--color-neon);
+    box-shadow: 0 0 6px var(--color-neon);
   }
 
   .boss-marker {
@@ -715,15 +582,6 @@
       80% 80%, 60% 80%, 60% 100%, 40% 100%, 40% 80%, 20% 80%,
       0% 60%, 0% 20%
     );
-  }
-
-  /* Sprite idle wobble only inside cabinet */
-  @keyframes sprite-wobble {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
-  }
-  .arcade-cabinet .pixel-sprite {
-    animation: sprite-wobble 1s steps(2) infinite;
   }
 
   /* ---------- pixel sprites (pure CSS shapes) ---------- */

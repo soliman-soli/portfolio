@@ -4,6 +4,7 @@ import { getProject, projects } from '@/content/projects'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { PixelSprite } from '@/components/work/PixelSprite'
 import { DitherFrame } from '@/components/ui/DitherFrame'
+import { FocusHeading } from '@/components/transition/FocusHeading'
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }))
@@ -44,9 +45,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   <span className="mono text-[var(--color-neon)] text-[14px] mr-12">
                     #{project.index}
                   </span>
-                  <h1 className="inline font-[800] text-[36px] narrow:text-[28px] font-disp font-stretch-125 text-ink">
+                  <h1
+                    id="project-heading"
+                    tabIndex={-1}
+                    className="inline font-[800] text-[36px] narrow:text-[28px] font-disp font-stretch-125 text-ink outline-none"
+                  >
                     {project.title}
                   </h1>
+                  <FocusHeading targetId="project-heading" />
                 </div>
                 <StatusPill status={project.status} label={project.statusLabel} />
               </div>

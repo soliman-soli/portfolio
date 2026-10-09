@@ -33,6 +33,11 @@ export function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 }
 
+/** Standard easeOutCubic, t in [0, 1]. */
+export function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3)
+}
+
 /* ---------- crosshair ---------- */
 
 /** Readout offset from the cursor, in px (both axes). */
@@ -42,18 +47,24 @@ export const CROSSHAIR_DIGITS = 4
 /** Fade duration for the crosshair marker entering/exiting hero (~150ms). */
 export const CROSSHAIR_FADE_MS = 150
 
-/* ---------- floating preview & docking ---------- */
+/* ---------- arcade stage start transition ---------- */
 
-/** Fraction of the remaining distance the card covers each frame (vertical rAF lerp). */
-export const PREVIEW_LERP = 0.16
-/** Right inset from the viewport edge in px. */
-export const PREVIEW_RIGHT_INSET = 40
-/** Band thickness for the dithered frame ring on desktop (px). */
-export const PREVIEW_BAND_DESKTOP = 32
-/** Band thickness for the touch inline panel (px). */
-export const PREVIEW_BAND_TOUCH = 14
-/** Viewport vertical margin padding around the card and frame (px). */
-export const PREVIEW_VIEWPORT_PADDING = 16
+/** Circular dithered wipe duration covering the screen (ms). */
+export const STAGE_COVER_MS = 450
+/** Minimum hold duration on the loading stage screen (ms). */
+export const STAGE_HOLD_MIN_MS = 500
+/** Fail-safe timeout to remove overlay and fallback (ms). */
+export const STAGE_FAILSAFE_MS = 4000
+/** Dithered reveal / contraction duration (ms). */
+export const STAGE_REVEAL_MS = 450
+/** Canvas dot size on desktop in px. */
+export const STAGE_DOT_DESKTOP = 8
+/** Canvas dot size on narrow viewports in px. */
+export const STAGE_DOT_NARROW = 6
+/** Width of the dithered leading edge band in px. */
+export const STAGE_BAND_WIDTH = 120
+/** Number of segments in the loading bar. */
+export const STAGE_BAR_SEGMENTS = 10
 
 /* ---------- animated dithered frame & water ripple ---------- */
 
@@ -88,17 +99,6 @@ export const WAVE_FOOTPRINT_RADIUS = 2
 export const WAVE_MARGIN_PX = 24
 /** Activity threshold below which simulation drops back to idle fps. */
 export const WAVE_ACTIVITY_THRESHOLD = 0.003
-
-/* ---------- arcade cabinet boot sequence ---------- */
-
-/** Shorter CRT power-on duration (0-150ms). */
-export const ARCADE_POWERON_MS = 150
-/** Content stepped stagger per block (50ms). */
-export const ARCADE_STAGGER_MS = 50
-/** Total boot time until fully readable (<=600ms, ~410ms). */
-export const ARCADE_BOOT_TOTAL_MS = 450
-/** Glitch hop swap duration when hopping between rows (~200ms). */
-export const ARCADE_GLITCH_MS = 200
 
 /* ---------- work list ---------- */
 

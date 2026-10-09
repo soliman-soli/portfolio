@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Archivo, JetBrains_Mono, Press_Start_2P } from 'next/font/google'
+import { StageTransitionProvider } from '@/components/transition/StageTransition'
 import './globals.css'
 
 const archivo = Archivo({
@@ -40,10 +41,12 @@ export default function RootLayout({
       className={`${archivo.variable} ${jetbrainsMono.variable} ${pressStart2P.variable}`}
     >
       <body>
-        <a href="#work" className="skip-link mono">
-          skip to work &rarr;
-        </a>
-        {children}
+        <StageTransitionProvider>
+          <a href="#work" className="skip-link mono">
+            skip to work &rarr;
+          </a>
+          {children}
+        </StageTransitionProvider>
       </body>
     </html>
   )

@@ -95,42 +95,144 @@ async function run() {
       await context.close()
     }
 
-    if (!vp.mobile) {
-      // Desktop arcade cabinet tests
+    // c) Work list & Stage-start transition captures
+    {
       const { context, page } = await newPage(browser, vp)
       await page.goto(cfg.url, { waitUntil: 'load' })
       await page.evaluate(() => document.fonts.ready)
       await sleep(SETTLE_MS)
       await scrollToSection(page, 'work')
-      await shot(page, vp, 'c0-work-list')
 
-      // c1) Cabinet at 1s after hovering row 01
-      const row1 = await page.locator(`${cfg.row}:nth-child(1)`).boundingBox()
-      if (row1) {
-        await page.mouse.move(row1.x + row1.width * 0.35, row1.y + row1.height / 2, { steps: 8 })
-        await sleep(1000)
-        await shot(page, vp, 'c-cabinet-boot')
+      const listShotName = vp.mobile ? 'd0-work-list' : 'c0-work-list'
+      await shot(page, vp, listShotName)
 
-        // c-ripple) Move pointer near cabinet frame to produce water ripples
-        const pv = await page.locator('#pv').boundingBox()
-        if (pv) {
-          await page.mouse.move(pv.x - 16, pv.y + 60)
-          await page.mouse.move(pv.x, pv.y + 120, { steps: 8 })
-          await page.mouse.move(pv.x + 18, pv.y + 180, { steps: 8 })
-          await sleep(300)
-          await shot(page, vp, 'c-cabinet-ripple')
-        }
-
-        // c2) Cabinet at +400ms after hopping to row 03 (glitch swap)
-        const row3 = await page.locator(`${cfg.row}:nth-child(3)`).boundingBox()
-        if (row3) {
-          await page.mouse.move(row3.x + row3.width * 0.35, row3.y + row3.height / 2, { steps: 5 })
-          await sleep(400)
-          await shot(page, vp, 'c2-cabinet-hop')
+      // Hover row 01 on desktop to capture ▶ marker
+      if (!vp.mobile) {
+        const row1 = await page.locator(`${cfg.row}:nth-child(1)`).boundingBox()
+        if (row1) {
+          await page.mouse.move(row1.x + row1.width * 0.35, row1.y + row1.height / 2)
+          await sleep(250)
+          await shot(page, vp, 'c0-row-hover')
         }
       }
 
-      // f) About section (without quest card)
+      // Click row 01 to start arcade stage transition
+      const rowTarget = page.locator(`${cfg.row}:nth-child(1)`)
+      const prefix = vp.mobile ? 'd' : 'c'
+
+      // Click and capture at +150ms (COVER), +450ms (HOLD start), +800ms (HOLD midway)
+      if (vp.mobile) {
+        await rowTarget.tap()
+      } else {
+        await rowTarget.click()
+      }
+
+      await sleep(150)
+      await shot(page, vp, `${prefix}1-stage-cover`)
+
+      await sleep(300) // 150 + 300 = 450ms
+      await shot(page, vp, `${prefix}2-stage-hold`)
+
+      await sleep(350) // 450 + 350 = 800ms
+      await shot(page, vp, `${prefix}3-stage-loading`)
+
+      // Wait for transition completion (HOLD 500ms + REVEAL 450ms)
+      await page.waitForURL('**/work/ai-candidate-evaluation', { timeout: 4000 })
+      await page.waitForSelector('.stage-transition-overlay', { state: 'hidden', timeout: 3000 })
+      await sleep(300)
+      await shot(page, vp, `${prefix}4-stage-done`)
+
+      // Assert overlay is unmounted/hidden and body scroll is restored
+      const bodyOverflow = await page.evaluate(() => document.body.style.overflow)
+      if (bodyOverflow !== '') {
+        throw new Error(`Expected body overflow to be restored, got "${bodyOverflow}"`)
+      }
+
+      // Assert focus moved to h1 on the new page
+      const focusedTag = await page.evaluate(() => document.activeElement?.tagName)
+      if (focusedTag !== 'H1') {
+        console.warn(`Expected focus on H1, got ${focusedTag}`)
+      }
+
+      await context.close()
+    }
+
+    if (!vp.mobile) {
+      // Interactive Playwright checks on desktop
+      const { context, page } = await newPage(browser, vp)
+      await page.goto(cfg.url, { waitUntil: 'load' })
+      await page.evaluate(() => document.fonts.ready)
+      await sleep(SETTLE_MS)
+      await scrollToSection(page, 'work')
+
+      // Check 1: ctrl-click does not show transition overlay
+      const [ctrlNewPage] = await Promise.all([
+        context.waitForEvent('page'),
+        page.locator(`${cfg.row}:nth-child(2)`).click({ modifiers: ['Control'] }),
+      ])
+      await ctrlNewPage.waitForLoadState('domcontentloaded')
+      const isOverlayActiveOnCtrl = await page.evaluate(() => {
+        const el = document.querySelector('.stage-transition-overlay')
+        return el && getComputedStyle(el).display !== 'none'
+      })
+      if (isOverlayActiveOnCtrl) {
+        throw new Error('ctrl-click triggered transition overlay!')
+      }
+      await ctrlNewPage.close()
+      await sleep(500)
+
+      // Check 2: middle-click does not show transition overlay
+      const [midNewPage] = await Promise.all([
+        context.waitForEvent('page', { timeout: 8000 }),
+        page.locator(`${cfg.row}:nth-child(2)`).click({ button: 'middle' }),
+      ])
+      await midNewPage.waitForLoadState('domcontentloaded')
+      const isOverlayActiveOnMid = await page.evaluate(() => {
+        const el = document.querySelector('.stage-transition-overlay')
+        return el && getComputedStyle(el).display !== 'none'
+      })
+      if (isOverlayActiveOnMid) {
+        throw new Error('middle-click triggered transition overlay!')
+      }
+      await midNewPage.close()
+
+      // Check 3: keyboard Enter on focused row plays transition
+      const row3 = page.locator(`${cfg.row}:nth-child(3)`)
+      await row3.focus()
+      await row3.press('Enter')
+      await sleep(150)
+      const overlayOnEnter = await page.evaluate(() => {
+        const el = document.querySelector('.stage-transition-overlay')
+        return el && getComputedStyle(el).display !== 'none'
+      })
+      if (!overlayOnEnter) {
+        throw new Error('Keyboard Enter on focused row failed to trigger transition!')
+      }
+      await page.waitForURL('**/work/secure-multi-tenant-platform', { timeout: 4000 })
+      await page.waitForSelector('.stage-transition-overlay', { state: 'hidden', timeout: 3000 })
+
+      // Check 4: going Back returns to list without transition
+      await page.goBack()
+      await page.waitForURL(cfg.url)
+      const overlayOnBack = await page.evaluate(() => {
+        const el = document.querySelector('.stage-transition-overlay')
+        return el && getComputedStyle(el).display !== 'none'
+      })
+      if (overlayOnBack) {
+        throw new Error('Browser Back button unexpectedly triggered transition!')
+      }
+
+      // Check 5: double-click does not throw or double-trigger
+      await scrollToSection(page, 'work')
+      const row1 = page.locator(`${cfg.row}:nth-child(1)`)
+      await row1.dblclick()
+      await page.waitForURL('**/work/ai-candidate-evaluation', { timeout: 4000 })
+      await page.waitForSelector('.stage-transition-overlay', { state: 'hidden', timeout: 3000 })
+      await page.goBack()
+      await page.waitForURL(cfg.url)
+      await sleep(500)
+
+      // f) About section
       await scrollToSection(page, 'about')
       await sleep(800)
       await shot(page, vp, 'f-about')
@@ -254,7 +356,7 @@ async function run() {
         await sleep(800)
         await shot(projPage, vp, 'h-project-desktop')
 
-        // Move pointer across the green dithered frame band with steps at +300ms
+        // Move pointer across the green dithered frame band
         const article = await projPage.locator('article').boundingBox()
         if (article) {
           await projPage.mouse.move(article.x - 20, article.y + 80)
@@ -267,7 +369,7 @@ async function run() {
         await projContext.close()
       }
 
-      // e) Reduced motion captures: cabinet + contact section + project page + console
+      // e) Reduced motion captures: asserts NO overlay and navigation still happens
       {
         const { context: rmContext, page: rmPage } = await newPage(browser, vp, {
           reducedMotion: 'reduce',
@@ -280,27 +382,29 @@ async function run() {
         await shot(rmPage, vp, 'k-console-reduced')
 
         await scrollToSection(rmPage, 'work')
-        const rmRow1 = await rmPage.locator(`${cfg.row}:nth-child(1)`).boundingBox()
-        if (rmRow1) {
-          await rmPage.mouse.move(rmRow1.x + rmRow1.width * 0.35, rmRow1.y + rmRow1.height / 2)
-          await sleep(500)
-          await shot(rmPage, vp, 'e2-cabinet-reduced')
+        const rmRow1 = rmPage.locator(`${cfg.row}:nth-child(1)`)
+        await rmRow1.click()
+        // In reduced motion, overlay is NEVER shown
+        const overlayVisible = await rmPage.evaluate(() => {
+          const el = document.querySelector('.stage-transition-overlay')
+          return el && getComputedStyle(el).display !== 'none'
+        })
+        if (overlayVisible) {
+          throw new Error('Reduced motion mode unexpectedly displayed transition overlay!')
         }
+        await rmPage.waitForURL('**/work/ai-candidate-evaluation')
+        await sleep(300)
+        await shot(rmPage, vp, 'e-stage-reduced')
+
+        await rmPage.goto(cfg.url)
         await scrollToSection(rmPage, 'contact')
         await sleep(400)
         await shot(rmPage, vp, 'e-contact-reduced')
 
-        if (target === 'app') {
-          await rmPage.goto(new URL('work/ai-candidate-evaluation', cfg.url).href, { waitUntil: 'load' })
-          await rmPage.evaluate(() => document.fonts.ready)
-          await sleep(600)
-          await shot(rmPage, vp, 'h-project-reduced')
-        }
-
         await rmContext.close()
       }
     } else {
-      // Mobile tests
+      // Mobile additional tests
       const { context, page } = await newPage(browser, vp)
       await page.goto(cfg.url, { waitUntil: 'load' })
       await page.evaluate(() => document.fonts.ready)
@@ -315,18 +419,6 @@ async function run() {
       await scrollToSection(page, 'console')
       await sleep(800)
       await shot(page, vp, 'k-console-mobile')
-
-      // d0) Mobile work list before tap
-      await scrollToSection(page, 'work')
-      await page.waitForSelector(`${cfg.row}:nth-child(4)`)
-      await sleep(1000)
-      await shot(page, vp, 'd0-work-list')
-
-      // d) Mobile expanded row
-      await page.locator(`${cfg.row}:nth-child(1)`).tap()
-      // Let mobile stage screen boot animation complete
-      await sleep(1000)
-      await shot(page, vp, 'd-expanded')
 
       // g) Mobile Contact screen
       await scrollToSection(page, 'contact')
