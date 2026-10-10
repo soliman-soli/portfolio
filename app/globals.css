@@ -1177,6 +1177,39 @@
     animation: blink-press 0.8s steps(1) infinite;
   }
 
+  /* ---------- ready link easter egg ---------- */
+  .ready-cursor {
+    animation: ready-blink 1s steps(1) infinite;
+  }
+
+  @keyframes ready-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .ready-glitch-text {
+    display: inline-block;
+    animation: ready-glitch 0.25s steps(2);
+  }
+
+  @keyframes ready-glitch {
+    0% { opacity: 0.3; transform: translate(-1px, 1px); }
+    33% { opacity: 0.9; transform: translate(1px, -1px); }
+    66% { opacity: 0.5; transform: translate(-1px, 0); }
+    100% { opacity: 1; transform: translate(0, 0); }
+  }
+
+  /* ---------- crt arcade cabinet frame ---------- */
+  .crt-monitor {
+    animation: crt-flicker 0.15s infinite;
+  }
+
+  @keyframes crt-flicker {
+    0% { opacity: 0.995; }
+    50% { opacity: 1; }
+    100% { opacity: 0.992; }
+  }
+
   /* ---------- arcade console ---------- */
   .console-screen {
     position: relative;
@@ -1325,6 +1358,12 @@
     #about .about-card::after {
       display: none !important;
     }
+    .ready-cursor,
+    .ready-glitch-text,
+    .crt-monitor {
+      animation: none !important;
+    }
   }
 }
+
 

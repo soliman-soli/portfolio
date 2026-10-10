@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useInView } from '@/lib/hooks/useInView'
 import { useMediaQuery, REDUCED_MOTION } from '@/lib/hooks/useMediaQuery'
 import { links } from '@/content/links'
+import { ReadyLink } from '@/components/arcade/ReadyLink'
 
 export function ContactSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -191,9 +192,13 @@ export function ContactSection() {
         <footer className="w-full border-t border-[var(--color-line)] mt-64 pt-24 flex justify-between items-center text-mut mono text-[12px] narrow:flex-col narrow:gap-12 narrow:text-center">
           <span>&copy; 2026 Soliman Ahmed &middot; Cairo, Egypt</span>
           <span className="text-[var(--color-neon)]">1 credit</span>
-          <a href="#" className="hover:text-ink transition-colors">
-            &uarr; start over
-          </a>
+          <div className="flex items-center gap-14">
+            <ReadyLink />
+            <span className="text-[var(--color-line)]" aria-hidden="true">&middot;</span>
+            <a href="#" className="hover:text-ink transition-colors">
+              &uarr; start over
+            </a>
+          </div>
         </footer>
       </div>
     </section>
