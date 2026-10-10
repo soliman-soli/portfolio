@@ -32,8 +32,8 @@ export default function Home() {
             aboutReplayRef.current = fn
           }}
         />
-        <Console />
         <WorkSection />
+        <Console />
         <ContactSection />
       </main>
     </>

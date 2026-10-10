@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { ARCADE_CONFIG } from '@/lib/arcade/config'
 import { sound } from '@/lib/arcade/audio'
-import { links } from '@/content/links'
 
 interface RewardProps {
   score: number
@@ -160,32 +159,19 @@ export function Reward({ score, onRestart }: RewardProps) {
             </div>
           )}
 
-          {/* Real Subtle CTAs */}
+          {/* Subtle CTAs */}
           {isDecrypted && (
-            <div className="flex flex-wrap items-center justify-center gap-16 sm:gap-24 pt-10 border-t border-[var(--color-line)] w-full text-[12px]">
-              <a
-                href={links.mailto}
-                className="text-[var(--color-neon)] hover:underline flex items-center gap-4"
-              >
-                hire me &rarr;
-              </a>
-              <a
-                href={links.cv}
-                download
-                className="text-ink hover:text-[var(--color-neon)] transition-colors"
-              >
-                download CV
-              </a>
+            <div className="flex flex-wrap items-center justify-center gap-20 sm:gap-28 pt-10 border-t border-[var(--color-line)] w-full text-[12px]">
               <Link
                 href="/"
-                className="text-mut hover:text-ink transition-colors"
+                className="text-[var(--color-neon)] hover:underline flex items-center gap-4"
               >
-                back to site
+                back to site &rarr;
               </Link>
               <button
                 type="button"
                 onClick={onRestart}
-                className="text-mut hover:text-[var(--color-neon)] transition-colors cursor-pointer"
+                className="text-mut hover:text-ink transition-colors cursor-pointer"
               >
                 play again &#8635;
               </button>

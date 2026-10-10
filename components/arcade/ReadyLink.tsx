@@ -26,34 +26,42 @@ export function ReadyLink() {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <Link
-      href="/play"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onFocus={() => setIsHovered(true)}
-      onBlur={() => setIsHovered(false)}
-      className="ready-link group relative inline-flex items-center mono text-[12px] text-[var(--color-neon)] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-[var(--color-neon)] focus-visible:outline-offset-4 rounded transition-all select-none"
-      aria-label="Start the arcade mini-game"
-    >
-      {hasGem ? (
-        <span>
-          {isHovered ? (
-            <span className="ready-glitch-text">Ready? &#9656; play again</span>
-          ) : (
-            <span>Ready? &#10003; gem collected</span>
-          )}
-        </span>
-      ) : (
-        <span>
-          {isHovered ? (
-            <span className="ready-glitch-text">Ready? &#9656; press start</span>
-          ) : (
-            <span>
-              Ready? <span className="ready-cursor font-mono inline-block">▋</span>
-            </span>
-          )}
-        </span>
-      )}
-    </Link>
+    <div className="flex flex-col items-end narrow:items-center gap-4 text-right narrow:text-center">
+      <Link
+        href="/play"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
+        onBlur={() => setIsHovered(false)}
+        className={`challenge-link group relative inline-flex items-center mono text-[13px] sm:text-[13.5px] tracking-[0.12em] text-[var(--color-neon)] focus-visible:outline-2 focus-visible:outline-[var(--color-neon)] focus-visible:outline-offset-4 rounded select-none ${
+          hasGem ? 'is-complete' : ''
+        }`}
+        aria-label="Accept the challenge and start the arcade mini-game"
+      >
+        {hasGem ? (
+          <span>
+            {isHovered ? (
+              <span className="challenge-glitch-text">&#9656; 3 BOSSES. 0 MERCY.</span>
+            ) : (
+              <span>[ CHALLENGE COMPLETE &#10003; ]</span>
+            )}
+          </span>
+        ) : (
+          <span>
+            {isHovered ? (
+              <span className="challenge-glitch-text">&#9656; 3 BOSSES. 0 MERCY.</span>
+            ) : (
+              <span>
+                [ ACCEPT THE CHALLENGE ]{' '}
+                <span className="ready-cursor font-mono inline-block font-normal">▋</span>
+              </span>
+            )}
+          </span>
+        )}
+      </Link>
+      <span className="mono text-[11px] text-[#6e6e6a] tracking-normal select-none leading-none">
+        only 1 in 10 makes it to the end
+      </span>
+    </div>
   )
 }

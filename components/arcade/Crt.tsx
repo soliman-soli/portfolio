@@ -20,12 +20,7 @@ export function Crt({ children, onExit }: CrtProps) {
   return (
     <div className="arcade-cabinet-wrapper relative flex flex-col items-center justify-center min-h-[100dvh] bg-[#050507] p-12 sm:p-24 overflow-hidden select-none">
       {/* Top Cabinet Header Bar */}
-      <div className="w-full max-w-[840px] flex items-center justify-between pb-8 border-b border-[var(--color-line)] text-mut mono text-[12px] z-20">
-        <div className="flex items-center gap-10">
-          <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-neon)] animate-pulse" />
-          <span className="text-ink font-medium tracking-wide">SOLIMAN-OS ARCADE // v1.0</span>
-        </div>
-
+      <div className="w-full max-w-[840px] flex items-center justify-end pb-8 border-b border-[var(--color-line)] text-mut mono text-[12px] z-20">
         <div className="flex items-center gap-16">
           <button
             type="button"

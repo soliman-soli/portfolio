@@ -1187,16 +1187,48 @@
     50%, 100% { opacity: 0; }
   }
 
-  .ready-glitch-text {
-    display: inline-block;
-    animation: ready-glitch 0.25s steps(2);
+  .challenge-link {
+    text-shadow: 0 0 3px rgba(204, 255, 46, 0.2);
+    transition: text-shadow 0.3s ease;
   }
 
-  @keyframes ready-glitch {
-    0% { opacity: 0.3; transform: translate(-1px, 1px); }
-    33% { opacity: 0.9; transform: translate(1px, -1px); }
-    66% { opacity: 0.5; transform: translate(-1px, 0); }
-    100% { opacity: 1; transform: translate(0, 0); }
+  .challenge-link:not(.is-complete) {
+    animation: challenge-pulse 2.4s ease-in-out infinite;
+  }
+
+  .challenge-link.is-complete {
+    animation: none;
+    text-shadow: none;
+    opacity: 0.85;
+  }
+
+  @keyframes challenge-pulse {
+    0%, 100% {
+      text-shadow: 0 0 3px rgba(204, 255, 46, 0.2);
+    }
+    50% {
+      text-shadow: 0 0 10px rgba(204, 255, 46, 0.75), 0 0 20px rgba(204, 255, 46, 0.35);
+    }
+  }
+
+  .challenge-glitch-text {
+    display: inline-block;
+    animation: challenge-glitch 0.22s steps(2);
+  }
+
+  @keyframes challenge-glitch {
+    0% {
+      transform: translate(-1.5px, 0.5px);
+      text-shadow: -1.5px 0 #ff0055, 1.5px 0 #00ffff;
+    }
+    50% {
+      transform: translate(1.5px, -0.5px);
+      text-shadow: 1.5px 0 #ff0055, -1.5px 0 #00ffff;
+    }
+    100% {
+      transform: translate(0, 0);
+      text-shadow: 0 0 10px rgba(204, 255, 46, 0.8);
+    }
   }
 
   /* ---------- crt arcade cabinet frame ---------- */
@@ -1359,9 +1391,12 @@
       display: none !important;
     }
     .ready-cursor,
-    .ready-glitch-text,
+    .challenge-link,
+    .challenge-glitch-text,
     .crt-monitor {
       animation: none !important;
+      text-shadow: none !important;
+      transform: none !important;
     }
   }
 }
