@@ -12,6 +12,7 @@ import { ContactSection } from '@/components/contact/ContactSection'
 
 export default function Home() {
   const replayRef = useRef<(() => void) | null>(null)
+  const aboutReplayRef = useRef<(() => void) | null>(null)
 
   return (
     <>
@@ -20,8 +21,17 @@ export default function Home() {
       <CornerBrackets />
 
       <main>
-        <Hero onReplay={() => replayRef.current?.()} />
-        <AboutSection />
+        <Hero
+          onReplay={() => {
+            replayRef.current?.()
+            aboutReplayRef.current?.()
+          }}
+        />
+        <AboutSection
+          onReplayRegister={(fn) => {
+            aboutReplayRef.current = fn
+          }}
+        />
         <Console />
         <WorkSection />
         <ContactSection />

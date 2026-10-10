@@ -115,3 +115,11 @@ export const CONSOLE_REVEAL_MAX_MS = 600
 export const CONSOLE_FLASH_MS = 200
 /** Maximum command history items stored in memory. */
 export const CONSOLE_HISTORY_MAX = 50
+
+/* ---------- about section reveal ---------- */
+
+/** IntersectionObserver threshold for the about section reveal (~20%). */
+export const ABOUT_REVEAL_THRESHOLD = 0.2
+/** Stepped delay per level increment when ticking up ("lv.0X", ~130ms). */
+export const LEVEL_TICK_MS = 130
+

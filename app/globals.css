@@ -111,6 +111,22 @@
     --dur-row-title: 0.5s;
     --dur-row-idx: 0.25s;
 
+    /* motion: about section reveal tokens */
+    --ease-boot: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-about-title: 1.1s;
+    --dur-about-sublabel: 0.8s;
+    --dur-about-card: 0.9s;
+    --dur-about-scanline: 1.3s;
+    --delay-about-scanline: 0.45s;
+    --dur-about-row-line: 0.6s;
+    --dur-about-row-header: 0.7s;
+    --stagger-about-row: 90ms;
+    --dur-about-pip: 0.25s;
+    --stagger-about-pip: 55ms;
+    --delay-about-tag: 900ms;
+    --dur-about-tag: 0.5s;
+    --stagger-about-tag: 40ms;
+
     /* motion: distances */
     --rise-letter: 112%;
     --rise-fade: 14px;
@@ -830,6 +846,205 @@
     background: var(--color-neon);
   }
 
+  /* ---------- about section scroll-reveal ---------- */
+
+  /* Heading masked line reveal */
+  .about-title-mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    padding-bottom: 0.08em;
+  }
+  .about-title-inner {
+    display: inline-block;
+    letter-spacing: -0.02em;
+    transition:
+      transform var(--dur-about-title) var(--ease-boot),
+      letter-spacing var(--dur-about-title) var(--ease-boot);
+  }
+
+  /* Sublabel */
+  .about-sublabel {
+    transition:
+      opacity var(--dur-about-sublabel) var(--ease-boot) 0.15s,
+      transform var(--dur-about-sublabel) var(--ease-boot) 0.15s;
+  }
+
+  /* Player Card */
+  .about-card {
+    position: relative;
+    overflow: hidden;
+    transition:
+      opacity var(--dur-about-card) var(--ease-boot) 0.1s,
+      transform var(--dur-about-card) var(--ease-boot) 0.1s,
+      filter var(--dur-about-card) var(--ease-boot) 0.1s;
+  }
+
+  /* Player Card Scanline */
+  .about-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-neon) 25%,
+      var(--color-neon) 75%,
+      transparent 100%
+    );
+    box-shadow: 0 0 10px var(--color-neon), 0 0 3px rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  #about[data-reveal="true"] .about-card::after {
+    animation: card-scanline var(--dur-about-scanline) var(--ease-boot) var(--delay-about-scanline) 1 forwards;
+  }
+
+  @keyframes card-scanline {
+    0% {
+      top: 0%;
+      opacity: 0;
+    }
+    15% {
+      opacity: 0.9;
+    }
+    85% {
+      opacity: 0.9;
+    }
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
+  }
+
+  /* Stat Rows: Hairline & Header */
+  .about-stat-row {
+    position: relative;
+  }
+
+  .about-stat-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--color-line);
+    transform-origin: left;
+    transition: transform var(--dur-about-row-line) var(--ease-boot);
+    transition-delay: calc(var(--i, 0) * var(--stagger-about-row) + 0.2s);
+  }
+
+  .about-stat-header {
+    transition:
+      opacity var(--dur-about-row-header) var(--ease-boot),
+      transform var(--dur-about-row-header) var(--ease-boot);
+    transition-delay: calc(var(--i, 0) * var(--stagger-about-row) + 0.25s);
+  }
+
+  /* Pips */
+  #about .xp b.f {
+    transition:
+      background-color var(--dur-about-pip) var(--ease-boot),
+      box-shadow var(--dur-about-pip) var(--ease-boot);
+    transition-delay: calc(
+      var(--i, 0) * var(--stagger-about-row) + 0.35s + var(--p, 0) * var(--stagger-about-pip)
+    );
+  }
+
+  /* Skill Tags */
+  .about-skill-tag {
+    transition:
+      opacity var(--dur-about-tag) var(--ease-boot),
+      transform var(--dur-about-tag) var(--ease-boot);
+    transition-delay: calc(
+      var(--i, 0) * var(--stagger-about-row) + 0.25s + var(--delay-about-tag) + var(--t, 0) * var(--stagger-about-tag)
+    );
+  }
+
+  /* Perks */
+  .about-perks {
+    position: relative;
+    transition:
+      opacity 0.7s var(--ease-boot) 1.0s,
+      transform 0.7s var(--ease-boot) 1.0s;
+  }
+
+  /* Initial hidden states (only when JS is enabled and motion is allowed) */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    #about:not([data-reveal="true"]) .about-title-inner {
+      transform: translateY(110%);
+      letter-spacing: 0.04em;
+    }
+    #about:not([data-reveal="true"]) .about-sublabel {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    #about:not([data-reveal="true"]) .about-card {
+      opacity: 0;
+      transform: translateY(26px);
+      filter: blur(8px);
+    }
+    #about:not([data-reveal="true"]) .about-stat-row::before {
+      transform: scaleX(0);
+    }
+    #about:not([data-reveal="true"]) .about-stat-header {
+      opacity: 0;
+      transform: translateX(24px);
+    }
+    #about:not([data-reveal="true"]) .xp b.f {
+      background-color: var(--color-line);
+      box-shadow: none;
+    }
+    #about:not([data-reveal="true"]) .about-skill-tag {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    #about:not([data-reveal="true"]) .about-perks {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  /* Active reveal states */
+  #about[data-reveal="true"] .about-title-inner {
+    transform: translateY(0);
+    letter-spacing: -0.02em;
+  }
+  #about[data-reveal="true"] .about-sublabel {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  #about[data-reveal="true"] .about-card {
+    opacity: 1;
+    transform: translateY(0);
+    filter: none;
+  }
+  #about[data-reveal="true"] .about-stat-row::before {
+    transform: scaleX(1);
+  }
+  #about[data-reveal="true"] .about-stat-header {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  #about[data-reveal="true"] .xp b.f {
+    background-color: var(--color-neon);
+    box-shadow: 0 0 6px rgba(204, 255, 46, 0.45);
+  }
+  #about[data-reveal="true"] .about-skill-tag {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  #about[data-reveal="true"] .about-perks {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   /* ---------- touch devices ---------- */
   @media (hover: none) {
     .crosshair-wrap {
@@ -1093,5 +1308,23 @@
     .card-key-art .pixel-sprite {
       animation: none !important;
     }
+    #about .about-title-inner,
+    #about .about-sublabel,
+    #about .about-card,
+    #about .about-stat-row::before,
+    #about .about-stat-header,
+    #about .about-skill-tag,
+    #about .about-perks,
+    #about .xp b.f {
+      transition: none !important;
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+    #about .about-card::after {
+      display: none !important;
+    }
   }
 }
+
